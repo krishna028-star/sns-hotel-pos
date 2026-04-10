@@ -50,7 +50,7 @@ export default function RootLayout({
         {/* Icons */}
         <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png" />
         <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512x512.png" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-96x96.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-192x192.png" />
 
         {/* Service Worker Registration */}
         <script dangerouslySetInnerHTML={{
