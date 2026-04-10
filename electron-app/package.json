@@ -1,0 +1,37 @@
+{
+  "name": "sns-hotels-pos",
+  "version": "1.0.0",
+  "description": "SNS Hotels POS — Cloud-Native Hotel Management System",
+  "main": "main.js",
+  "author": "SNS Hotels Group",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux",
+    "build:all": "electron-builder --win --mac --linux"
+  },
+  "build": {
+    "appId": "com.snshotels.pos",
+    "productName": "SNS Hotels POS",
+    "copyright": "© 2025 SNS Hotels Group",
+    "directories": { "output": "../release/desktop" },
+    "files": ["main.js", "preload.js", "web/**/*"],
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "icon": "../public/icons/icon-512x512.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SNS Hotels POS"
+    }
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.0.0"
+  }
+}

@@ -1,0 +1,10 @@
+// babel.config.js — used by Jest for transpiling TypeScript/JSX
+// This makes jest work without ts-jest, using babel-jest instead.
+module.exports = {
+  presets: [
+    ['next/babel', {
+      'preset-react': { runtime: 'automatic' },
+      'preset-typescript': {},
+    }],
+  ],
+};

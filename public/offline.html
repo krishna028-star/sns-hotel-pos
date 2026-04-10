@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Offline — SNS Hotels POS</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F1D40 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Inter', system-ui, sans-serif;
+      color: #fff;
+    }
+    .container { text-align: center; padding: 40px 24px; max-width: 420px; }
+    .icon { font-size: 72px; margin-bottom: 24px; }
+    h1 { font-size: 28px; font-weight: 800; margin-bottom: 12px; }
+    p { font-size: 15px; color: rgba(255,255,255,0.6); line-height: 1.6; margin-bottom: 32px; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 9999px; padding: 6px 18px;
+      font-size: 13px; color: rgba(255,255,255,0.7);
+      margin-bottom: 32px;
+    }
+    .btn {
+      display: inline-block; padding: 14px 32px;
+      background: #2E5AFF; color: #fff;
+      border-radius: 10px; font-size: 15px; font-weight: 700;
+      text-decoration: none; cursor: pointer; border: none;
+      transition: all 0.2s;
+    }
+    .btn:hover { background: #1a3fd9; transform: translateY(-1px); }
+    .divider { height: 1px; background: rgba(255,255,255,0.1); margin: 24px 0; }
+    .tip { font-size: 12px; color: rgba(255,255,255,0.35); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">📡</div>
+    <h1>You're Offline</h1>
+    <p>SNS Hotels POS requires an internet connection for live orders, KOT alarms, and payment processing. Please check your network and try again.</p>
+    <div class="badge">
+      <span style="width:8px;height:8px;border-radius:50%;background:#FF3B30;display:inline-block;"></span>
+      No internet connection
+    </div>
+    <br />
+    <button class="btn" onclick="window.location.reload()">↻ Retry Connection</button>
+    <div class="divider"></div>
+    <div class="tip">Cached pages may still be viewable. Data shown may not be current.</div>
+  </div>
+</body>
+</html>
