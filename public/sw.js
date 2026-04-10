@@ -1,5 +1,5 @@
 // SNS Hotels POS — Service Worker (Workbox-lite pattern)
-const CACHE_NAME = 'sns-pos-v1.2';
+const CACHE_NAME = 'sns-pos-v1.3';
 const OFFLINE_URL = '/offline.html';
 
 const STATIC_ASSETS = [
