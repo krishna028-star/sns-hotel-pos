@@ -34,6 +34,7 @@ interface AuthCtx {
   loginAs: (role: string) => void;
   logout: () => void;
   addUser: (newUser: Omit<User, 'id'>) => { ok: boolean; error?: string };
+  deleteUser: (userId: number) => { ok: boolean; error?: string };
   canManage: (targetRole: string) => boolean;
 }
 
@@ -83,13 +84,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('sns_user');
   }, []);
 
-  const addUser = React.useCallback((newUser: Omit<User, 'id'>) => {
-    if (!canManage(newUser.role)) {
-      return { ok: false, error: 'You do not have permission to create this role' };
+  const deleteUser = React.useCallback((userId: number) => {
+    const targetUser = allUsers.find(u => u.id === userId);
+    if (!targetUser) return { ok: false, error: 'User not found' };
+    
+    if (!canManage(targetUser.role)) {
+      return { ok: false, error: 'You do not have permission to delete this user' };
     }
-    const id = allUsers.length + 1;
-    const userWithId = { ...newUser, id };
-    const updated = [...dynamicUsers, userWithId];
+
+    const updated = dynamicUsers.filter(u => u.id !== userId);
     setDynamicUsers(updated);
     localStorage.setItem('sns_dynamic_users', JSON.stringify(updated));
     return { ok: true };
@@ -103,8 +106,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loginAs,
     logout,
     addUser,
+    deleteUser,
     canManage
-  }), [user, isAuthLoaded, allUsers, login, loginAs, logout, addUser, canManage]);
+  }), [user, isAuthLoaded, allUsers, login, loginAs, logout, addUser, deleteUser, canManage]);
 
   return (
     <AuthContext.Provider value={value}>

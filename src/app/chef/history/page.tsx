@@ -2,12 +2,7 @@
 import React from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 
-const history = [
-  { id: 'KOT-099', table: 5, items: [{ name: 'Paneer Tikka', qty: 2 }, { name: 'Naan', qty: 4 }], time: '7:15 PM', duration: '18 min', chef: 'Chef Rajan' },
-  { id: 'KOT-098', table: 9, items: [{ name: 'Biryani Special', qty: 1 }], time: '6:55 PM', duration: '22 min', chef: 'Chef Rajan' },
-  { id: 'KOT-097', table: 3, items: [{ name: 'Butter Chicken', qty: 3 }, { name: 'Garlic Naan', qty: 3 }], time: '6:30 PM', duration: '16 min', chef: 'Chef Lakshmi' },
-  { id: 'KOT-096', table: 1, items: [{ name: 'Dal Makhani', qty: 2 }, { name: 'Naan', qty: 2 }], time: '6:10 PM', duration: '14 min', chef: 'Chef Rajan' },
-];
+const history: any[] = [];
 
 function ChefHistory() {
   return (

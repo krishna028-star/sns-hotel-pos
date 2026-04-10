@@ -28,17 +28,17 @@ function CashierDash() {
           <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 4 }}>SNS Beach Resort · Shift Active 🟢</div>
         </div>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
-          <a href="/cashier/alarms"><button className="btn btn-sm" style={{ background: '#FF3B30', color: '#fff' }}>🔔 Alarms <span style={{ background: 'rgba(255,255,255,0.3)', borderRadius: 10, padding: '1px 6px', fontSize: 10, marginLeft: 4 }}>2</span></button></a>
+          <a href="/cashier/alarms"><button className="btn btn-sm" style={{ background: '#FF3B30', color: '#fff' }}>🔔 Alarms</button></a>
           <a href="/cashier/reconcile"><button className="btn btn-sm" style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}>🧾 Reconcile</button></a>
         </div>
       </div>
 
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>
         {[
-          { label: 'Payments Today', value: '42', icon: '✅', color: '#00C48C', bg: '#e8fdf7' },
-          { label: 'Cash Collected', value: '₹18,200', icon: '💵', color: '#F39C12', bg: '#fdf8e8' },
+          { label: 'Payments Today', value: '0', icon: '✅', color: '#00C48C', bg: '#e8fdf7' },
+          { label: 'Cash Collected', value: '₹0', icon: '💵', color: '#F39C12', bg: '#fdf8e8' },
           { label: 'Pending Payments', value: payments.length, icon: '⏳', color: '#FF8A34', bg: '#fff3e8' },
-          { label: 'App Payments', value: '₹42,800', icon: '📲', color: '#2E5AFF', bg: '#e8edff' },
+          { label: 'App Payments', value: '₹0', icon: '📲', color: '#2E5AFF', bg: '#e8edff' },
         ].map(m => (
           <div className="metric-card" key={m.label}>
             <div className="metric-icon" style={{ background: m.bg, color: m.color }}>{m.icon}</div>
@@ -74,7 +74,7 @@ function CashierDash() {
       {/* Quick Nav */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
         {[
-          { href: '/cashier/alarms', icon: '🔔', label: 'Payment Alarms', sub: '2 active', color: '#FF3B30' },
+          { href: '/cashier/alarms', icon: '🔔', label: 'Payment Alarms', sub: '0 active', color: '#FF3B30' },
           { href: '/cashier/history', icon: '📋', label: 'Payment History', sub: 'View past transactions', color: '#2E5AFF' },
           { href: '/cashier/shift', icon: '🕐', label: 'Shift Management', sub: 'Start/end shift', color: '#F39C12' },
         ].map(n => (

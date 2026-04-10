@@ -16,11 +16,9 @@ interface KOT {
 }
 
 function KitchenDisplay() {
-  const [kots, setKots] = useState<KOT[]>([
-    ...PENDING_KOTS.map(k => ({ ...k, status: 'pending' as KOTStatus })),
-    { id: 'KOT-002', orderId: 'ORD-102', tableNum: 3, items: [{ name: 'Biryani Special', qty: 1, note: '' }, { name: 'Raita', qty: 1, note: '' }], time: '7:50 PM', elapsed: '14 min', status: 'cooking' as KOTStatus },
-    { id: 'KOT-000', orderId: 'ORD-101', tableNum: 2, items: [{ name: 'Butter Chicken', qty: 2, note: 'Less spicy' }, { name: 'Naan', qty: 4, note: '' }], time: '7:30 PM', elapsed: '34 min', status: 'ready' as KOTStatus },
-  ]);
+  const [kots, setKots] = useState<KOT[]>(
+    PENDING_KOTS.map(k => ({ ...k, status: 'pending' as KOTStatus }))
+  );
 
   const advance = (id: string) => {
     setKots(prev => prev.map(k => {

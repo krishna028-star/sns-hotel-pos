@@ -31,10 +31,10 @@ function ManagerDash() {
       {/* Metrics */}
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>
         {[
-          { label: "Today's Revenue", value: '₹1,40,000', trend: '↑ 18%', icon: '💰', color: '#2E5AFF', bg: '#e8edff' },
+          { label: "Today's Revenue", value: '₹0', trend: '0% change', icon: '💰', color: '#2E5AFF', bg: '#e8edff' },
           { label: 'Active Orders', value: ACTIVE_ORDERS.length, trend: 'Right now', icon: '📋', color: '#FF8A34', bg: '#fff3e8' },
           { label: 'Pending KOTs', value: PENDING_KOTS.length, trend: 'Needs attention', icon: '🔔', color: '#FF3B30', bg: '#fff0ef' },
-          { label: 'Staff On Duty', value: '6', trend: 'All active', icon: '👥', color: '#00C48C', bg: '#e8fdf7' },
+          { label: 'Staff On Duty', value: '0', trend: 'None active', icon: '👥', color: '#00C48C', bg: '#e8fdf7' },
         ].map(m => (
           <div className="metric-card" key={m.label}>
             <div className="metric-icon" style={{ background: m.bg, color: m.color }}>{m.icon}</div>
@@ -66,6 +66,7 @@ function ManagerDash() {
                 <div style={{ fontWeight: 700, color: '#2E5AFF' }}>{formatCurrency(o.total)}</div>
               </div>
             ))}
+            {ACTIVE_ORDERS.length === 0 && <div style={{ padding: 20, textAlign: 'center', color: '#94A3B8' }}>No live orders</div>}
           </div>
         </div>
 
@@ -76,10 +77,10 @@ function ManagerDash() {
               {[
                 { href: '/manager/menu', icon: '🍽️', label: 'Manage Menu', sub: 'Add/edit items' },
                 { href: '/manager/tables', icon: '🪑', label: 'Tables & QR', sub: 'Floor plan & QR codes' },
-                { href: '/manager/staff', icon: '👥', label: 'Staff Management', sub: 'Workers, cashiers, chefs' },
-                { href: '/manager/discounts', icon: '💰', label: 'Discount Approvals', sub: '2 pending' },
-                { href: '/manager/theft', icon: '🚨', label: 'Theft Reports', sub: '1 pending review' },
-                { href: '/manager/reports', icon: '📊', label: 'Reports', sub: 'Sales, inventory data' },
+                { href: '/manager/staff', icon: '👥', label: 'Staff Management', sub: 'Manage workers' },
+                { href: '/manager/discounts', icon: '💰', label: 'Discount Approvals', sub: '0 pending' },
+                { href: '/manager/theft', icon: '🚨', label: 'Theft Reports', sub: '0 pending' },
+                { href: '/manager/reports', icon: '📊', label: 'Reports', sub: 'Sales data' },
               ].map(a => (
                 <a key={a.href} href={a.href} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 10, background: '#F8F9FC', textDecoration: 'none', transition: 'all 0.2s' }}
                   onMouseEnter={e => (e.currentTarget.style.background = '#E8EDFF')}

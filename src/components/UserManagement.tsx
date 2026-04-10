@@ -145,7 +145,24 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
                       <button className="btn btn-outline btn-sm" title="Edit">✏️</button>
                       <button className="btn btn-outline btn-sm" title="Reset Password">🔑</button>
                       {canManage(u.role) && (
-                        <button className="btn btn-outline btn-sm" title="Suspend" style={{ color: 'var(--danger)' }}>⏸</button>
+                        <>
+                          <button className="btn btn-outline btn-sm" title="Suspend" style={{ color: 'var(--orange)' }}>⏸</button>
+                          {u.role !== 'main_admin' && (
+                            <button 
+                              className="btn btn-outline btn-sm" 
+                              title="Delete User" 
+                              style={{ color: 'var(--danger)' }}
+                              onClick={() => {
+                                if (confirm(`Are you sure you want to permanently delete ${u.name}?`)) {
+                                  const res = deleteUser(u.id);
+                                  if (!res.ok) alert(res.error);
+                                }
+                              }}
+                            >
+                              🗑️
+                            </button>
+                          )}
+                        </>
                       )}
                     </div>
                   </td>
