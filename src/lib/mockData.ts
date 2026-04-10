@@ -1,6 +1,7 @@
 // Centralized mock data for SNS Hotels POS
 
 export const DEMO_USERS = [
+  { id: 0, name: 'Laxmi Admin', email: 'krishnalaxmi@gmail.com', password: 'madmin14328', role: 'main_admin', tenant: 'SNS Hotels Group', hotel: null, avatar: 'LA' },
   { id: 1, name: 'System Admin', email: 'admin@sns.com', password: 'admin123', role: 'main_admin', tenant: 'SNS Hotels Group', hotel: null, avatar: 'SA' },
   { id: 2, name: 'Ramesh Patel', email: 'client@sns.com', password: 'client123', role: 'main_client', tenant: 'SNS Grand Hotels', hotel: null, avatar: 'RP' },
   { id: 3, name: 'Priya Singh', email: 'franchise@sns.com', password: 'franchise123', role: 'franchise_head', tenant: 'SNS Grand Hotels', hotel: null, avatar: 'PS' },

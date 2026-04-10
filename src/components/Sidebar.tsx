@@ -35,6 +35,7 @@ const NAV_CONFIG: Record<string, NavSection[]> = {
       { label: 'Franchises', href: '/client/franchises', icon: '🤝' },
       { label: 'Chain Policies', href: '/client/policies', icon: '📜' },
       { label: 'Theft Reports', href: '/client/theft', icon: '🚨' },
+      { label: 'Users', href: '/client/users', icon: '👥' },
       { label: 'Audit Logs', href: '/client/audit', icon: '📋' },
     ]},
   ],
@@ -47,6 +48,7 @@ const NAV_CONFIG: Record<string, NavSection[]> = {
     ]},
     { title: 'Management', items: [
       { label: 'Hotels', href: '/franchise/hotels', icon: '🏩' },
+      { label: 'Users', href: '/franchise/users', icon: '👥' },
       { label: 'PO Approvals', href: '/franchise/approvals', icon: '✅', badge: 2 },
       { label: 'Theft Review', href: '/franchise/theft', icon: '🚨', badge: 1 },
     ]},
