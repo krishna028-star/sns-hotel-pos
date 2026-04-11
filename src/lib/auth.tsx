@@ -91,9 +91,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return myPower < targetPower;
   }, [user]);
 
-  const login = useCallback((email: string, password: string) => {
-    const found = allUsers.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
-    if (!found) return { ok: false, error: 'Invalid email or password' };
+  const login = useCallback((emailOrId: string, password: string) => {
+    const term = emailOrId.toLowerCase();
+    const found = allUsers.find(u => 
+      (u.email.toLowerCase() === term || (u.staffId && u.staffId.toLowerCase() === term)) && 
+      u.password === password
+    );
+    if (!found) return { ok: false, error: 'Invalid Staff ID, Email or Password' };
     const safeUser = { ...found };
     delete safeUser.password;
     setUser(safeUser);

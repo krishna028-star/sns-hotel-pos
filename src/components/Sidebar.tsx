@@ -18,6 +18,7 @@ const NAV_CONFIG: Record<string, NavSection[]> = {
     { title: 'Management', items: [
       { label: 'Tenants', href: '/admin/tenants', icon: '🏢' },
       { label: 'Users', href: '/admin/users', icon: '👥' },
+      { label: 'Payroll', href: '/admin/payroll', icon: '📜' },
       { label: 'Audit Logs', href: '/admin/audit', icon: '📋' },
       { label: 'Global Config', href: '/admin/config', icon: '⚙️' },
       { label: 'System Health', href: '/admin/health', icon: '🩺' },

@@ -82,10 +82,10 @@ function LoginPage() {
 
               <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <div className="form-group">
-                  <label style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: 600, letterSpacing: 0.5 }}>Email Address</label>
+                  <label style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: 600, letterSpacing: 0.5 }}>Staff ID or Email</label>
                   <div className="login-input-wrap" style={{ marginTop: 6 }}>
-                    <svg className="login-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                    <input className="login-input has-icon" type="email" placeholder="admin@sns.com" value={email} onChange={e => setEmail(e.target.value)} required />
+                    <svg className="login-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <input className="login-input has-icon" type="text" placeholder="e.g. SNS-WKR-101" value={email} onChange={e => setEmail(e.target.value)} required />
                   </div>
                 </div>
                 <div className="form-group">
