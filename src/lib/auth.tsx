@@ -37,6 +37,7 @@ interface AuthCtx {
   deleteUser: (userId: number | string) => Promise<{ ok: boolean; error?: string }>;
   updateUserPassword: (userId: number | string, newPass: string) => Promise<{ ok: boolean; error?: string }>;
   canManage: (targetRole: string) => boolean;
+  cloudError: string | null;
 }
 
 import { fetchUsers, createDbUser, updateDbUserPassword, deleteDbUser } from '@/app/actions/authActions';
@@ -47,6 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [dynamicUsers, setDynamicUsers] = useState<User[]>([]);
   const [isAuthLoaded, setIsAuthLoaded] = useState(false);
+  const [cloudError, setCloudError] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -64,6 +66,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     fetchUsers().then(res => {
       if (res.ok && res.users) {
         setDynamicUsers(res.users);
+        setCloudError(null);
+      } else {
+        console.error('Cloud Sync Failed:', res.error);
+        setCloudError(res.error || 'Unknown database error');
       }
       setIsAuthLoaded(true);
     });
@@ -158,8 +164,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     addUser,
     deleteUser,
     updateUserPassword,
-    canManage
-  }), [user, isAuthLoaded, allUsers, login, loginAs, logout, addUser, deleteUser, updateUserPassword, canManage]);
+    canManage,
+    cloudError
+  }), [user, isAuthLoaded, allUsers, login, loginAs, logout, addUser, deleteUser, updateUserPassword, canManage, cloudError]);
 
   return (
     <AuthContext.Provider value={value}>

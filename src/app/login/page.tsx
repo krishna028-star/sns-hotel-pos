@@ -8,7 +8,7 @@ import { DEMO_USERS, ROLE_LABELS, ROLE_COLORS } from '@/lib/mockData';
 const FEATURES = ['Real-time KOT & payment alarms', 'Multi-tenant franchise management', 'Inventory & theft reporting', 'Customer QR ordering portal'];
 
 function LoginPage() {
-  const { user, isAuthLoaded, login, loginAs } = useAuth();
+  const { user, isAuthLoaded, login, loginAs, cloudError } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -73,6 +73,12 @@ function LoginPage() {
         <div className="login-card" style={{ maxWidth: 440 }}>
               <div className="login-card-title">Welcome Back 👋</div>
               <div className="login-card-sub">Sign in to your SNS Hotels POS account</div>
+
+              {cloudError && (
+                <div style={{ background: 'rgba(255,165,0,0.1)', border: '1px solid rgba(255,165,0,0.3)', borderRadius: 8, padding: '10px 14px', color: '#ffa500', fontSize: 13, marginBottom: 14 }}>
+                  ⚠️ <strong>Cloud Connection Issue:</strong> Only built-in Admin accounts will work. New staff cannot log in until the database is linked.
+                </div>
+              )}
 
               <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <div className="form-group">
