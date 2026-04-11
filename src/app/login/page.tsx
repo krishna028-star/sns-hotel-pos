@@ -6,7 +6,6 @@ import { AuthProvider, useAuth, getHome } from '@/lib/auth';
 import { DEMO_USERS, ROLE_LABELS, ROLE_COLORS } from '@/lib/mockData';
 
 const FEATURES = ['Real-time KOT & payment alarms', 'Multi-tenant franchise management', 'Inventory & theft reporting', 'Customer QR ordering portal'];
-const DEMO_ROLES = DEMO_USERS.filter(u => u.role !== 'customer').slice(0, 6);
 
 function LoginPage() {
   const { user, isAuthLoaded, login, loginAs } = useAuth();
@@ -15,7 +14,6 @@ function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showDemo, setShowDemo] = useState(false);
   const [showPw, setShowPw] = useState(false);
 
   useEffect(() => { 
@@ -32,8 +30,6 @@ function LoginPage() {
     if (!res.ok) setError(res.error ?? 'Invalid credentials');
     setLoading(false);
   };
-
-  const quickLogin = (role: string) => { loginAs(role); };
 
   const roleEmoji: Record<string, string> = { main_admin: '🔐', main_client: '🏢', franchise_head: '🏩', hotel_manager: '🏨', inventory_manager: '📦', cashier: '💰', chef: '👨‍🍳', worker: '👤', customer: '👥' };
 
@@ -75,8 +71,6 @@ function LoginPage() {
 
       <div className="login-right">
         <div className="login-card" style={{ maxWidth: 440 }}>
-          {!showDemo ? (
-            <>
               <div className="login-card-title">Welcome Back 👋</div>
               <div className="login-card-sub">Sign in to your SNS Hotels POS account</div>
 
@@ -105,36 +99,6 @@ function LoginPage() {
                   {loading ? <><div className="loader" />&nbsp;Signing in…</> : '→ Sign In'}
                 </button>
               </form>
-
-              <div style={{ marginTop: 20, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 20 }}>
-                <button onClick={() => setShowDemo(true)} className="login-btn" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', fontSize: 13 }}>
-                  🚀 Quick Demo — Choose a Role
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-                <button onClick={() => setShowDemo(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: 20 }}>←</button>
-                <div>
-                  <div className="login-card-title" style={{ marginBottom: 0 }}>🚀 Quick Demo Access</div>
-                  <div className="login-card-sub" style={{ marginBottom: 0 }}>Select a role to explore without credentials</div>
-                </div>
-              </div>
-              <div className="demo-roles">
-                {DEMO_USERS.map(u => (
-                  <button key={u.role} className="demo-role-btn" onClick={() => quickLogin(u.role)}>
-                    <div className="demo-role-icon" style={{ background: ROLE_COLORS[u.role] + '25', color: ROLE_COLORS[u.role] }}>{roleEmoji[u.role]}</div>
-                    <div>
-                      <div className="demo-role-name">{u.name}</div>
-                      <div className="demo-role-desc">{ROLE_LABELS[u.role]}{u.hotel ? ` · ${u.hotel}` : u.tenant ? ` · ${u.tenant}` : ''}</div>
-                    </div>
-                    <span style={{ marginLeft: 'auto', color: 'rgba(255,255,255,0.3)', fontSize: 18 }}>→</span>
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
         </div>
       </div>
     </div>
