@@ -30,7 +30,7 @@ const NOTIFY_PARENT: Record<string, string | null> = {
 };
 
 // In-memory user store (replace with DB in production)
-const dynamicUsers = [...DEMO_USERS];
+const dynamicUsers: any[] = [...DEMO_USERS];
 let nextId = DEMO_USERS.length + 1;
 
 function getAuthUser(req: NextRequest) {
@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
     avatar: name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase(),
   };
 
-  dynamicUsers.push(newUser);
+  dynamicUsers.push(newUser as any);
 
   // Log alert (in production: save to audit_logs with alert_sent=true)
   const alertTarget = NOTIFY_PARENT[role];
