@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/auth';
 function ManagerStaff() {
   const { user: currentUser, users, addUser, canManage, updateUserPassword } = useAuth();
   const [showModal, setShowModal] = useState(false);
-  const [editId, setEditId] = useState<number | null>(null);
+  const [editId, setEditId] = useState<number | string | null>(null);
   const [form, setForm] = useState({ name: '', role: 'worker', email: '', password: '' });
   const [search, setSearch] = useState('');
 
@@ -22,15 +22,15 @@ function ManagerStaff() {
     s.role.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (editId) {
       if (!form.password || form.password.length < 6) {
         alert('Password must be at least 6 characters');
         return;
       }
-      const res = updateUserPassword(editId, form.password);
+      const res = await updateUserPassword(editId, form.password);
       if (res.ok) {
-        alert('Password updated successfully!');
+        alert('Password updated successfully via Cloud!');
         setShowModal(false);
         setForm({ name: '', role: 'worker', email: '', password: '' });
         setEditId(null);
@@ -46,7 +46,7 @@ function ManagerStaff() {
         alert('Password must be at least 6 characters');
         return;
       }
-      const res = addUser({
+      const res = await addUser({
         ...form,
         tenant: currentUser?.tenant || 'SNS Grand Hotels',
         hotel: 'SNS Beach Resort',
@@ -54,7 +54,7 @@ function ManagerStaff() {
       });
 
       if (res.ok) {
-        alert(`✅ Staff "${form.name}" created successfully!`);
+        alert(`✅ Staff "${form.name}" created globally via Database!`);
         setShowModal(false);
         setForm({ name: '', role: 'worker', email: '', password: '' });
         setEditId(null);

@@ -29,7 +29,7 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
   const [showModal, setShowModal] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-  const [editId, setEditId] = useState<number | null>(null);
+  const [editId, setEditId] = useState<number | string | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -66,13 +66,13 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
     });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setErrorMsg('');
     if (editId) {
       if (!formData.password || formData.password.length < 6) return setErrorMsg('Password must be at least 6 characters.');
-      const res = updateUserPassword(editId, formData.password);
+      const res = await updateUserPassword(editId, formData.password);
       if (res.ok) {
-        setSuccessMsg(`✅ Password for "${formData.name}" updated successfully!`);
+        setSuccessMsg(`✅ Password for "${formData.name}" updated successfully in cloud!`);
         setShowModal(false);
         resetForm();
         setTimeout(() => setSuccessMsg(''), 4000);
@@ -84,7 +84,7 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
       if (!formData.password || formData.password.length < 6) return setErrorMsg('Password must be at least 6 characters.');
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) return setErrorMsg('Please enter a valid email address.');
 
-      const res = addUser({
+      const res = await addUser({
         ...formData,
         hotel: formData.hotel || null,
         tenant: formData.tenant || null,
@@ -92,23 +92,23 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
       });
 
       if (res.ok) {
-        setSuccessMsg(`✅ User "${formData.name}" created successfully!`);
+        setSuccessMsg(`✅ User "${formData.name}" created globally via Cloud DB!`);
         setShowModal(false);
         resetForm();
         setTimeout(() => setSuccessMsg(''), 4000);
       } else {
-        setErrorMsg(res.error ?? 'Failed to create user.');
+        setErrorMsg(res.error ?? 'Failed to create user. Ensure internet connection.');
       }
     }
   };
 
-  const handleDelete = (u: typeof users[0]) => {
+  const handleDelete = async (u: typeof users[0]) => {
     if (!confirm(`Permanently delete "${u.name}" (${u.role})?\n\nThis cannot be undone.`)) return;
-    const res = deleteUser(u.id);
+    const res = await deleteUser(u.id);
     if (!res.ok) {
       alert(`❌ ${res.error}`);
     } else {
-      setSuccessMsg(`🗑️ User "${u.name}" deleted.`);
+      setSuccessMsg(`🗑️ User "${u.name}" deleted from Cloud.`);
       setTimeout(() => setSuccessMsg(''), 3000);
     }
   };

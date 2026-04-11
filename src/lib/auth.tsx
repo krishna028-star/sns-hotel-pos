@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { DEMO_USERS, ROLE_HOMES } from '@/lib/mockData';
 
 export interface User {
-  id: number;
+  id: number | string;
   name: string;
   email: string;
   password?: string;
@@ -33,11 +33,13 @@ interface AuthCtx {
   login: (email: string, password: string) => { ok: boolean; error?: string };
   loginAs: (role: string) => void;
   logout: () => void;
-  addUser: (newUser: Omit<User, 'id'>) => { ok: boolean; error?: string };
-  deleteUser: (userId: number) => { ok: boolean; error?: string };
-  updateUserPassword: (userId: number, newPass: string) => { ok: boolean; error?: string };
+  addUser: (newUser: Omit<User, 'id'>) => Promise<{ ok: boolean; error?: string }>;
+  deleteUser: (userId: number | string) => Promise<{ ok: boolean; error?: string }>;
+  updateUserPassword: (userId: number | string, newPass: string) => Promise<{ ok: boolean; error?: string }>;
   canManage: (targetRole: string) => boolean;
 }
+
+import { fetchUsers, createDbUser, updateDbUserPassword, deleteDbUser } from '@/app/actions/authActions';
 
 const AuthContext = createContext<AuthCtx | null>(null);
 
@@ -54,11 +56,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const storedUsers = localStorage.getItem('sns_dynamic_users');
       if (storedUsers) setDynamicUsers(JSON.parse(storedUsers));
     } catch {
-      // Corrupted storage — clear and continue
       localStorage.removeItem('sns_user');
       localStorage.removeItem('sns_dynamic_users');
     }
-    setIsAuthLoaded(true);
+
+    // Refresh from Prisma Live Mode!
+    fetchUsers().then(res => {
+      if (res.ok && res.users) {
+        setDynamicUsers(res.users);
+      }
+      setIsAuthLoaded(true);
+    });
   }, []);
 
   const allUsers = useMemo(() => [...DEMO_USERS, ...dynamicUsers], [dynamicUsers]);
@@ -94,70 +102,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('sns_user');
   }, []);
 
-  // BUG FIX: addUser was referenced but NEVER defined — caused runtime crash
-  const addUser = useCallback((newUser: Omit<User, 'id'>) => {
+  // Cloud Synced Add User
+  const addUser = useCallback(async (newUser: Omit<User, 'id'>) => {
     if (!user) return { ok: false, error: 'Not authenticated' };
+    if (!canManage(newUser.role)) return { ok: false, error: 'Hierarchy denied.' };
 
-    // Enforce role hierarchy — cannot create user with equal/higher power
-    if (!canManage(newUser.role)) {
-      return { ok: false, error: 'You cannot create a user with a role equal to or higher than yours.' };
-    }
-
-    // Check for duplicate email
     const duplicate = allUsers.find(u => u.email.toLowerCase() === newUser.email.toLowerCase());
-    if (duplicate) {
-      return { ok: false, error: `Email "${newUser.email}" is already registered.` };
-    }
+    if (duplicate) return { ok: false, error: `Email "${newUser.email}" is already registered.` };
 
-    // Generate unique ID — max existing + 1
-    const maxId = allUsers.reduce((max, u) => Math.max(max, u.id), 0);
-    const created: User = { ...newUser, id: maxId + 1 };
+    const res = await createDbUser(newUser);
+    if (!res.ok) return { ok: false, error: res.error };
 
-    const updated = [...dynamicUsers, created];
-    setDynamicUsers(updated);
-    localStorage.setItem('sns_dynamic_users', JSON.stringify(updated));
+    // Refresh cloud list
+    const freshRes = await fetchUsers();
+    if (freshRes.ok && freshRes.users) setDynamicUsers(freshRes.users);
+
     return { ok: true };
-  }, [user, canManage, allUsers, dynamicUsers]);
+  }, [user, canManage, allUsers]);
 
-  const deleteUser = useCallback((userId: number) => {
-    // Prevent deleting hardcoded admin users (id 0 and 1)
-    if (userId <= 1) return { ok: false, error: 'Built-in admin accounts cannot be deleted.' };
+  const deleteUser = useCallback(async (userId: number | string) => {
+    if (typeof userId === 'number' && userId <= 1) return { ok: false, error: 'Built-in accounts protected.' };
+    const targetUser = allUsers.find(u => u.id === userId);
+    if (!targetUser) return { ok: false, error: 'Not found' };
+    if (!canManage(targetUser.role)) return { ok: false, error: 'Permission denied' };
 
+    const res = await deleteDbUser(userId as string);
+    if (!res.ok) return { ok: false, error: res.error };
+
+    setDynamicUsers(prev => prev.filter(u => u.id !== userId));
+    return { ok: true };
+  }, [canManage, allUsers]);
+
+  const updateUserPassword = useCallback(async (userId: number | string, newPass: string) => {
     const targetUser = allUsers.find(u => u.id === userId);
     if (!targetUser) return { ok: false, error: 'User not found' };
-
-    if (!canManage(targetUser.role)) {
-      return { ok: false, error: 'You do not have permission to delete this user.' };
-    }
-
-    // Only dynamic users can be deleted (not DEMO_USERS)
-    const inDynamic = dynamicUsers.find(u => u.id === userId);
-    if (!inDynamic) return { ok: false, error: 'This user cannot be deleted from this interface.' };
-
-    const updated = dynamicUsers.filter(u => u.id !== userId);
-    setDynamicUsers(updated);
-    localStorage.setItem('sns_dynamic_users', JSON.stringify(updated));
-    return { ok: true };
-  }, [canManage, allUsers, dynamicUsers]);
-
-  const updateUserPassword = useCallback((userId: number, newPass: string) => {
-    const targetUser = allUsers.find(u => u.id === userId);
-    if (!targetUser) return { ok: false, error: 'User not found' };
-
-    if (!canManage(targetUser.role) && user?.id !== userId) {
-      return { ok: false, error: 'Cannot change password for this user.' };
-    }
-
+    if (!canManage(targetUser.role) && user?.id !== userId) return { ok: false, error: 'Denied.' };
     if (newPass.length < 6) return { ok: false, error: 'Password must be 6+ chars.' };
+    if (typeof userId === 'number') return { ok: false, error: 'Built in users cannot change pass.' };
 
-    const inDynamic = dynamicUsers.find(u => u.id === userId);
-    if (!inDynamic) return { ok: false, error: 'Built-in admin passwords cannot be changed here.' };
-
-    const updated = dynamicUsers.map(u => u.id === userId ? { ...u, password: newPass } : u);
-    setDynamicUsers(updated);
-    localStorage.setItem('sns_dynamic_users', JSON.stringify(updated));
+    const res = await updateDbUserPassword(userId as string, newPass);
+    if (!res.ok) return { ok: false, error: res.error };
+    
+    // Optimistic UI update
+    setDynamicUsers(prev => prev.map(u => u.id === userId ? { ...u, password: newPass } : u));
     return { ok: true };
-  }, [canManage, allUsers, dynamicUsers, user]);
+  }, [canManage, allUsers, user]);
 
   const value = useMemo(() => ({
     user,

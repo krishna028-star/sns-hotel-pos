@@ -2,7 +2,6 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  output: 'export',  // required for Capacitor static bundle
   eslint: {
     ignoreDuringBuilds: true,
   },
