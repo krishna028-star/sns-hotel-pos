@@ -1,7 +1,6 @@
 'use client';
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { AuthProvider } from '@/lib/auth';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts';
 
 const FLOOR_TABLES = [
@@ -57,7 +56,7 @@ export default function ClientOccupancyPage() {
   const occupancyRate = Math.round((occupied / FLOOR_TABLES.length) * 100);
 
   return (
-    <AuthProvider>
+    
       <DashboardLayout title="Occupancy & Booking Dashboard">
         {/* Metrics */}
         <div className="metrics-grid" style={{ marginBottom: 24 }}>
@@ -171,6 +170,6 @@ export default function ClientOccupancyPage() {
           </div>
         </div>
       </DashboardLayout>
-    </AuthProvider>
+    
   );
 }

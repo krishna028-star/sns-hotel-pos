@@ -1,7 +1,6 @@
 'use client';
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { AuthProvider } from '@/lib/auth';
 import { AUDIT_LOGS } from '@/lib/mockData';
 
 function AdminAudit() {
@@ -122,4 +121,4 @@ function AdminAudit() {
     </DashboardLayout>
   );
 }
-export default function AdminAuditPage() { return <AuthProvider><AdminAudit /></AuthProvider>; }
+export default function AdminAuditPage() { return <AdminAudit />; }

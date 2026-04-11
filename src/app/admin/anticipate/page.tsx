@@ -1,7 +1,6 @@
 'use client';
 import React from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { AuthProvider } from '@/lib/auth';
 import { FORECAST_DATA, formatCurrency } from '@/lib/mockData';
 import { ComposedChart, Area, Line, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
@@ -105,4 +104,4 @@ function AdminAnticipate() {
     </DashboardLayout>
   );
 }
-export default function AdminAnticipatePage() { return <AuthProvider><AdminAnticipate/></AuthProvider>; }
+export default function AdminAnticipatePage() { return <AdminAnticipate/>; }

@@ -22,14 +22,18 @@ function StockOverview() {
     i.name.toLowerCase().includes(search.toLowerCase())
   );
 
+  // BUG FIX: adjItem was declared AFTER applyAdjust used it (hoisting bug)
+  // Now declared first, before applyAdjust
+  const adjItem = adjModal;
+
   const applyAdjust = () => {
     if (!adjItem || !adjQty) return;
-    setIngredients(prev => prev.map(i => i.id === adjItem.id ? { ...i, stock: Math.max(0, i.stock + parseFloat(adjQty)) } : i));
+    const delta = parseFloat(adjQty);
+    if (isNaN(delta)) return;
+    setIngredients(prev => prev.map(i => i.id === adjItem.id ? { ...i, stock: Math.max(0, i.stock + delta) } : i));
     setAdjModal(null);
     setAdjQty('');
   };
-
-  const adjItem = adjModal;
 
   return (
     <DashboardLayout title="Stock Overview">

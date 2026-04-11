@@ -1,16 +1,21 @@
 'use client';
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import { PENDING_PAYMENTS, formatCurrency } from '@/lib/mockData';
+import { useNotifications } from '@/lib/notifications';
 
 function CashierPending() {
   const [payments, setPayments] = useState(PENDING_PAYMENTS.map(p => ({ ...p })));
   const [cashModal, setCashModal] = useState<typeof PENDING_PAYMENTS[0] | null>(null);
   const [cashReceived, setCashReceived] = useState('');
+  const { notify } = useNotifications();
+  const router = useRouter();
 
   const acceptCash = () => {
     if (!cashModal) return;
     setPayments(prev => prev.filter(p => p.id !== cashModal.id));
+    notify('payment', `💰 Cash payment of ${formatCurrency(cashModal.amount)} accepted — Table ${cashModal.tableNum}`);
     setCashModal(null);
     setCashReceived('');
   };
@@ -46,7 +51,8 @@ function CashierPending() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {p.method === 'cash'
                     ? <button className="btn btn-primary" onClick={() => { setCashModal(p); setCashReceived(''); }}>💵 Accept Cash</button>
-                    : <a href="/cashier/alarms"><button className="btn btn-danger">🔔 Go to Alarm</button></a>}
+                    // BUG FIX: was <a><button> — invalid HTML, buttons cannot be nested in anchors
+                    : <button className="btn btn-danger" onClick={() => router.push('/cashier/alarms')}>🔔 Go to Alarm</button>}
                   <button className="btn btn-ghost btn-sm">View Order</button>
                 </div>
               </div>

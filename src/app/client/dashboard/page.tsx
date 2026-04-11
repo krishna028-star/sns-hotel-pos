@@ -1,7 +1,6 @@
 'use client';
 import React from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { AuthProvider } from '@/lib/auth';
 import { SALES_TREND, FRANCHISE_SALES, THEFT_REPORTS, formatCurrency } from '@/lib/mockData';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import Link from 'next/link';
@@ -85,4 +84,4 @@ function ClientDash() {
     </DashboardLayout>
   );
 }
-export default function ClientDashPage() { return <AuthProvider><ClientDash /></AuthProvider>; }
+export default function ClientDashPage() { return <ClientDash />; }

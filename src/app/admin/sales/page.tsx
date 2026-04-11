@@ -1,7 +1,6 @@
 'use client';
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { AuthProvider } from '@/lib/auth';
 import { SALES_TREND, TOP_ITEMS, PAYMENT_BREAKDOWN, HOURLY_SALES, FRANCHISE_SALES, formatCurrency } from '@/lib/mockData';
 import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
@@ -133,4 +132,4 @@ function AdminSales() {
   );
 }
 
-export default function AdminSalesPage() { return <AuthProvider><AdminSales /></AuthProvider>; }
+export default function AdminSalesPage() { return <AdminSales />; }

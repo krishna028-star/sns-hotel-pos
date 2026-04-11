@@ -1,7 +1,6 @@
 'use client';
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { AuthProvider } from '@/lib/auth';
 
 function AdminConfig() {
   const [tab, setTab] = useState('taxes');
@@ -165,4 +164,4 @@ function AdminConfig() {
     </DashboardLayout>
   );
 }
-export default function AdminConfigPage() { return <AuthProvider><AdminConfig /></AuthProvider>; }
+export default function AdminConfigPage() { return <AdminConfig />; }

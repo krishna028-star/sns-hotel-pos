@@ -1,9 +1,12 @@
 'use client';
 import React, { useState } from 'react';
+
+import { useRouter } from "next/navigation";
 import DashboardLayout from '@/components/DashboardLayout';
 import { PENDING_PAYMENTS } from '@/lib/mockData';
 
 function CashierDash() {
+  const router = useRouter();
   const [payments, setPayments] = useState(PENDING_PAYMENTS.map(p => ({ ...p })));
   const [cashModal, setCashModal] = useState<typeof PENDING_PAYMENTS[0] | null>(null);
   const [cashReceived, setCashReceived] = useState('');
@@ -28,8 +31,8 @@ function CashierDash() {
           <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 4 }}>SNS Beach Resort · Shift Active 🟢</div>
         </div>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
-          <a href="/cashier/alarms"><button className="btn btn-sm" style={{ background: '#FF3B30', color: '#fff' }}>🔔 Alarms</button></a>
-          <a href="/cashier/reconcile"><button className="btn btn-sm" style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}>🧾 Reconcile</button></a>
+          <button className="btn btn-sm" style={{ background: '#FF3B30', color: '#fff' }} onClick={() => router.push("/cashier/alarms")}>🔔 Alarms</button>
+          <button className="btn btn-sm" style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }} onClick={() => router.push("/cashier/reconcile")}>🧾 Reconcile</button>
         </div>
       </div>
 
@@ -50,7 +53,7 @@ function CashierDash() {
 
       {/* Pending Payments */}
       <div className="card" style={{ marginBottom: 20 }}>
-        <div className="card-header"><div className="card-title">⏳ Pending Payments</div><a href="/cashier/pending"><button className="btn btn-outline btn-sm">View All</button></a></div>
+        <div className="card-header"><div className="card-title">⏳ Pending Payments</div><button className="btn btn-outline btn-sm" onClick={() => router.push("/cashier/pending")}>View All</button></div>
         {payments.length === 0
           ? <div className="empty-state" style={{ padding: 24 }}><div style={{ fontSize: 32 }}>✅</div><div>No pending payments</div></div>
           : payments.map(p => (
@@ -64,7 +67,7 @@ function CashierDash() {
               <div style={{ display: 'flex', gap: 8 }}>
                 {p.method === 'cash'
                   ? <button className="btn btn-primary btn-sm" onClick={() => { setCashModal(p); setCashReceived(''); }}>Accept Cash</button>
-                  : <a href="/cashier/alarms"><button className="btn btn-danger btn-sm">🔔 Go to Alarm</button></a>}
+                  : <button className="btn btn-danger btn-sm" onClick={() => router.push("/cashier/alarms")}>🔔 Go to Alarm</button>}
               </div>
             </div>
           ))

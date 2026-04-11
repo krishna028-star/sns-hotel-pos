@@ -1,5 +1,7 @@
 'use client';
 import React, { useState } from 'react';
+
+import { useRouter } from "next/navigation";
 import DashboardLayout from '@/components/DashboardLayout';
 
 const suppliers = [
@@ -10,6 +12,7 @@ const suppliers = [
 ];
 
 function Suppliers() {
+  const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ name: '', contact: '', phone: '', email: '', categories: '' });
 
@@ -47,7 +50,7 @@ function Suppliers() {
                 <span style={{ color: '#F39C12', fontSize: 14 }}>{renderStars(s.rating)} <span style={{ fontSize: 12, color: '#64748B' }}>({s.rating})</span></span>
                 <div style={{ display: 'flex', gap: 6 }}>
                   <button className="btn btn-outline btn-sm">Edit</button>
-                  <a href="/inventory/purchase-orders"><button className="btn btn-primary btn-sm">New PO</button></a>
+                  <button className="btn btn-primary btn-sm" onClick={() => router.push("/inventory/purchase-orders")}>New PO</button>
                 </div>
               </div>
             </div>

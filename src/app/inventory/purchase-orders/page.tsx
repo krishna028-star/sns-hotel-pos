@@ -12,15 +12,20 @@ function PurchaseOrders() {
 
   const receiveOrder = (id: string) => setOrders(prev => prev.map(o => o.id === id ? { ...o, status: 'received' as POStatus } : o));
 
+  // BUG FIX: Submit button had no handler — PO could never leave draft state
+  const submitForApproval = (id: string) => setOrders(prev => prev.map(o => o.id === id ? { ...o, status: 'pending_approval' as POStatus } : o));
+
   const addOrder = () => {
     if (!form.supplier || !form.amount) return;
+    // BUG FIX: ID generation was `PO-00${n+1}` which gives PO-003 for order 3 — breaks at 10+
+    const newId = `PO-${String(orders.length + 1).padStart(3, '0')}`;
     const newPO = {
-      id: `PO-00${orders.length + 1}`,
+      id: newId,
       supplier: form.supplier,
       amount: parseFloat(form.amount),
       status: 'draft' as POStatus,
       date: new Date().toISOString().split('T')[0],
-      items: parseInt(form.items)
+      items: parseInt(form.items) || 1
     };
     setOrders(prev => [newPO, ...prev]);
     setShowModal(false);
@@ -69,7 +74,8 @@ function PurchaseOrders() {
                   <td>
                     <div style={{ display: 'flex', gap: 6 }}>
                       {po.status === 'ordered' && <button className="btn btn-secondary btn-sm" onClick={() => receiveOrder(po.id)}>✅ Mark Received</button>}
-                      {po.status === 'draft' && <button className="btn btn-primary btn-sm">Submit</button>}
+                      {/* BUG FIX: Submit button had no onClick — wired to submitForApproval */}
+                      {po.status === 'draft' && <button className="btn btn-primary btn-sm" onClick={() => submitForApproval(po.id)}>📤 Submit</button>}
                       <button className="btn btn-ghost btn-sm">View</button>
                     </div>
                   </td>

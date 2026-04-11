@@ -1,7 +1,6 @@
 'use client';
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { AuthProvider } from '@/lib/auth';
 import { INGREDIENTS, PURCHASE_ORDERS, THEFT_REPORTS, formatCurrency } from '@/lib/mockData';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -119,4 +118,4 @@ function AdminInventory() {
     </DashboardLayout>
   );
 }
-export default function AdminInventoryPage() { return <AuthProvider><AdminInventory/></AuthProvider>; }
+export default function AdminInventoryPage() { return <AdminInventory/>; }

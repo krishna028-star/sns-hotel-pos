@@ -1,7 +1,6 @@
 'use client';
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { AuthProvider } from '@/lib/auth';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, AreaChart, Area } from 'recharts';
 
 const COMBINED_TREND = [
@@ -56,7 +55,7 @@ export default function ClientAnticipatePage() {
   const totalForecast = COMBINED_TREND.filter(d => d.predicted && !d.actual).slice(0, horizon).reduce((s, d) => s + (d.predicted ?? 0), 0);
 
   return (
-    <AuthProvider>
+    
       <DashboardLayout title="Anticipate View — Chain Forecasts">
         {/* Header */}
         <div style={{ background: 'linear-gradient(135deg, #2E5AFF, #9B59B6)', borderRadius: 16, padding: '20px 28px', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -205,6 +204,6 @@ export default function ClientAnticipatePage() {
           </div>
         </div>
       </DashboardLayout>
-    </AuthProvider>
+    
   );
 }

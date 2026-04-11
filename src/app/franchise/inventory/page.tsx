@@ -1,10 +1,13 @@
 'use client';
 import React from 'react';
+
+import { useRouter } from "next/navigation";
 import DashboardLayout from '@/components/DashboardLayout';
 import { INGREDIENTS, THEFT_REPORTS, PURCHASE_ORDERS, formatCurrency } from '@/lib/mockData';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 function FranchiseInventory() {
+  const router = useRouter();
   const critical = INGREDIENTS.filter(i => i.status === 'critical').length;
   const pendingPos = PURCHASE_ORDERS.filter(p => p.status === 'pending_approval').length;
   const totalTheft = THEFT_REPORTS.reduce((a, r) => a + r.loss, 0);
@@ -37,7 +40,7 @@ function FranchiseInventory() {
         <div className="alert alert-danger" style={{ marginBottom: 16 }}>
           <span>🚨</span>
           <span><strong>{critical} items critically low</strong> across franchise hotels — POs need approval urgently.</span>
-          <a href="/franchise/approvals" style={{ marginLeft: 'auto' }}><button className="btn btn-danger btn-sm">Review POs →</button></a>
+          <button className="btn btn-danger btn-sm" onClick={() => router.push("/franchise/approvals")}>Review POs →</button>
         </div>
       )}
 
@@ -68,7 +71,7 @@ function FranchiseInventory() {
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontWeight: 800, color: '#2E5AFF' }}>{formatCurrency(po.amount)}</div>
-                <a href="/franchise/approvals"><button className="btn btn-primary btn-sm" style={{ marginTop: 4 }}>Approve</button></a>
+                <button className="btn btn-primary btn-sm" style={{ marginTop: 4 }} onClick={() => router.push("/franchise/approvals")}>Approve</button>
               </div>
             </div>
           ))}

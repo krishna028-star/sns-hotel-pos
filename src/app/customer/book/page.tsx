@@ -1,10 +1,13 @@
 'use client';
 import React, { useState } from 'react';
+
+import { useRouter } from "next/navigation";
 import DashboardLayout from '@/components/DashboardLayout';
 
 const timeSlots = ['12:00 PM', '12:30 PM', '1:00 PM', '1:30 PM', '7:00 PM', '7:30 PM', '8:00 PM', '8:30 PM', '9:00 PM'];
 
 function BookTable() {
+  const router = useRouter();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [form, setForm] = useState({ guests: '2', date: '', time: '', notes: '' });
   const [submitted, setSubmitted] = useState(false);
@@ -99,8 +102,8 @@ function BookTable() {
                 ))}
               </div>
               <div style={{ display: 'flex', gap: 10 }}>
-                <a href="/customer/bookings" style={{ flex: 1 }}><button className="btn btn-outline btn-full">View My Bookings</button></a>
-                <a href="/customer/dashboard" style={{ flex: 1 }}><button className="btn btn-primary btn-full">Browse Menu</button></a>
+                <button className="btn btn-outline btn-full" onClick={() => router.push("/customer/bookings")}>View My Bookings</button>
+                <button className="btn btn-primary btn-full" onClick={() => router.push("/customer/dashboard")}>Browse Menu</button>
               </div>
             </div>
           </div>

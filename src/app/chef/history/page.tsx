@@ -23,23 +23,29 @@ function ChefHistory() {
           <table className="data-table">
             <thead><tr><th>KOT #</th><th>Table</th><th>Items</th><th>Time</th><th>Prep Duration</th><th>Chef</th><th>Status</th></tr></thead>
             <tbody>
-              {history.map(k => (
-                <tr key={k.id}>
-                  <td><strong>{k.id}</strong></td>
-                  <td>T{k.table}</td>
-                  <td>
-                    <div style={{ fontSize: 12 }}>
-                      {k.items.map((i, idx) => <div key={idx}>{i.name} ×{i.qty}</div>)}
-                    </div>
-                  </td>
-                  <td style={{ fontSize: 12 }}>{k.time}</td>
-                  <td>
-                    <span style={{ fontWeight: 700, color: parseInt(k.duration) < 20 ? '#00C48C' : '#FF8A34' }}>{k.duration}</span>
-                  </td>
-                  <td style={{ fontSize: 12 }}>{k.chef}</td>
-                  <td><span className="badge badge-green">✅ Served</span></td>
-                </tr>
-              ))}
+              {history.length === 0 ? (
+                <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: '#94A3B8', fontSize: 13 }}>
+                  No KOTs completed yet today. Orders you mark ready will appear here.
+                </td></tr>
+              ) : (
+                history.map(k => (
+                  <tr key={k.id}>
+                    <td><strong>{k.id}</strong></td>
+                    <td>T{k.table}</td>
+                    <td>
+                      <div style={{ fontSize: 12 }}>
+                        {k.items.map((i: any, idx: number) => <div key={idx}>{i.name} ×{i.qty}</div>)}
+                      </div>
+                    </td>
+                    <td style={{ fontSize: 12 }}>{k.time}</td>
+                    <td>
+                      <span style={{ fontWeight: 700, color: parseInt(k.duration) < 20 ? '#00C48C' : '#FF8A34' }}>{k.duration}</span>
+                    </td>
+                    <td style={{ fontSize: 12 }}>{k.chef}</td>
+                    <td><span className="badge badge-green">✅ Served</span></td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

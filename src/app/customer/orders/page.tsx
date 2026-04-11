@@ -1,5 +1,7 @@
 'use client';
 import React from 'react';
+
+import { useRouter } from "next/navigation";
 import DashboardLayout from '@/components/DashboardLayout';
 import { ACTIVE_ORDERS, formatCurrency } from '@/lib/mockData';
 
@@ -7,6 +9,7 @@ const statusLabel: Record<string, string> = { ready: '✅ Ready to Serve', cooki
 const statusColor: Record<string, string> = { ready: '#00C48C', cooking: '#FF8A34', kot_sent: '#2E5AFF', bill_requested: '#9B59B6', pending: '#94A3B8' };
 
 function MyOrders() {
+  const router = useRouter();
   const myOrders = ACTIVE_ORDERS.slice(0, 2);
 
   return (
@@ -19,7 +22,7 @@ function MyOrders() {
       </div>
 
       {myOrders.length === 0 ? (
-        <div className="card"><div className="empty-state"><div className="empty-state-icon">📦</div><div className="empty-state-title">No Active Orders</div><div className="empty-state-sub">Browse our menu and place your first order!</div><a href="/customer/dashboard"><button className="btn btn-primary" style={{ marginTop: 12 }}>Browse Menu</button></a></div></div>
+        <div className="card"><div className="empty-state"><div className="empty-state-icon">📦</div><div className="empty-state-title">No Active Orders</div><div className="empty-state-sub">Browse our menu and place your first order!</div><button className="btn btn-primary" style={{ marginTop: 12 }} onClick={() => router.push("/customer/dashboard")}>Browse Menu</button></div></div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {myOrders.map(order => (

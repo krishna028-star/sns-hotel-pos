@@ -1,9 +1,12 @@
 'use client';
 import React, { useState } from 'react';
+
+import { useRouter } from "next/navigation";
 import DashboardLayout from '@/components/DashboardLayout';
 import { INGREDIENTS, PURCHASE_ORDERS, THEFT_REPORTS, formatCurrency } from '@/lib/mockData';
 
 function InventoryDash() {
+  const router = useRouter();
   const critical = INGREDIENTS.filter(i => i.status === 'critical').length;
   const low = INGREDIENTS.filter(i => i.status === 'low').length;
   const totalValue = INGREDIENTS.reduce((a, i) => a + i.stock * i.unitCost, 0);
@@ -17,8 +20,8 @@ function InventoryDash() {
           <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 4 }}>{INGREDIENTS.length} Ingredients · {critical + low} alerts · Live tracking</div>
         </div>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
-          <a href="/inventory/stock"><button className="btn btn-sm" style={{ background: '#fff', color: '#00C48C' }}>📦 Stock</button></a>
-          <a href="/inventory/theft"><button className="btn btn-sm" style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}>🚨 File Report</button></a>
+          <button className="btn btn-sm" style={{ background: '#fff', color: '#00C48C' }} onClick={() => router.push("/inventory/stock")}>📦 Stock</button>
+          <button className="btn btn-sm" style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }} onClick={() => router.push("/inventory/theft")}>🚨 File Report</button>
         </div>
       </div>
 
@@ -42,14 +45,14 @@ function InventoryDash() {
         <div className="alert alert-danger" style={{ marginBottom: 16 }}>
           <span>🚨</span>
           <span><strong>{critical} ingredient(s) are critically low</strong> — Chicken, Milk, Butter. Order immediately!</span>
-          <a href="/inventory/purchase-orders" style={{ marginLeft: 'auto' }}><button className="btn btn-danger btn-sm">Create PO</button></a>
+          <button className="btn btn-danger btn-sm" onClick={() => router.push("/inventory/purchase-orders")}>Create PO</button>
         </div>
       )}
 
       <div className="card">
         <div className="card-header">
           <div className="card-title">📦 Stock Overview</div>
-          <a href="/inventory/stock"><button className="btn btn-outline btn-sm">View All</button></a>
+          <button className="btn btn-outline btn-sm" onClick={() => router.push("/inventory/stock")}>View All</button>
         </div>
         <div className="table-wrap">
           <table className="data-table">
@@ -77,7 +80,7 @@ function InventoryDash() {
       <div className="card" style={{ marginTop: 16 }}>
         <div className="card-header">
           <div className="card-title">📋 Recent Purchase Orders</div>
-          <a href="/inventory/purchase-orders"><button className="btn btn-outline btn-sm">Manage POs</button></a>
+          <button className="btn btn-outline btn-sm" onClick={() => router.push("/inventory/purchase-orders")}>Manage POs</button>
         </div>
         <div className="table-wrap">
           <table className="data-table">

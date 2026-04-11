@@ -1,49 +1,43 @@
 'use client';
-import { useEffect } from 'react';
-import { AuthProvider } from '@/lib/auth';
-import { NotificationProvider, useNotifications } from '@/lib/notifications';
+import { useEffect, useRef } from 'react';
+import { useNotifications } from '@/lib/notifications';
 
-function DemoTrigger() {
-  const { notify, notifications } = useNotifications();
-  
+// BUG FIX: Old DemoTrigger had notifications in render scope but not in effect deps,
+// causing the welcome notification to fire on every render cycle (infinite loop risk).
+// Also: notifications.length check was wrong — it read stale closure value.
+// Fix: use a ref to ensure one-time fire.
+function WelcomeTrigger() {
+  const { notify } = useNotifications();
+  const fired = useRef(false);
+
   useEffect(() => {
-    // Only trigger if no notifications exist (initial load)
-    if (notifications.length > 0) return;
+    if (fired.current) return;
+    fired.current = true;
 
-    const timer = setTimeout(() => {
-      notify('info', 'Welcome to SNS POS. System live.');
-    }, 2000);
-
-    const timer2 = setTimeout(() => {
-      notify('order', 'New KOT: Table 4 ordered Butter Chicken');
-    }, 5000);
-
-    const timer3 = setTimeout(() => {
-      notify('payment', 'Payment Received: ₹1,040 from Table 2');
-    }, 8000);
-
-    const timer4 = setTimeout(() => {
-      notify('inventory', 'Low Stock Alert: Chicken below 5kg');
-    }, 12000);
+    const t1 = setTimeout(() => notify('info', '✅ SNS POS System is live and ready.'), 1500);
+    const t2 = setTimeout(() => notify('order', '🍽️ Demo: New KOT from Table 4 — Butter Chicken ×2'), 4000);
+    const t3 = setTimeout(() => notify('payment', '💰 Demo: Payment received ₹1,040 from Table 2'), 7000);
+    const t4 = setTimeout(() => notify('inventory', '⚠️ Demo: Chicken stock below 5kg reorder level'), 11000);
 
     return () => {
-      clearTimeout(timer);
-      clearTimeout(timer2);
-      clearTimeout(timer3);
-      clearTimeout(timer4);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
     };
-  }, [notify]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return null;
 }
 
 export default function Providers({ children }: { children: React.ReactNode }) {
+  // NOTE: AuthProvider and NotificationProvider are in the root layout.tsx
+  // This component is kept for any future provider additions.
   return (
-    <AuthProvider>
-      <NotificationProvider>
-        <DemoTrigger />
-        {children}
-      </NotificationProvider>
-    </AuthProvider>
+    <>
+      <WelcomeTrigger />
+      {children}
+    </>
   );
 }

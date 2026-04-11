@@ -2,7 +2,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  output: 'standalone',  // for Docker + Capacitor export
+  output: 'export',  // required for Capacitor static bundle
   eslint: {
     ignoreDuringBuilds: true,
   },

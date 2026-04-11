@@ -1,7 +1,6 @@
 'use client';
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { AuthProvider } from '@/lib/auth';
 import { TENANTS } from '@/lib/mockData';
 
 function AdminTenants() {
@@ -135,4 +134,4 @@ function AdminTenants() {
     </DashboardLayout>
   );
 }
-export default function AdminTenantsPage() { return <AuthProvider><AdminTenants/></AuthProvider>; }
+export default function AdminTenantsPage() { return <AdminTenants/>; }

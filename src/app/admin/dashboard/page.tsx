@@ -1,19 +1,21 @@
 'use client';
 import React from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { AuthProvider } from '@/lib/auth';
+import { useAuth } from '@/lib/auth';
 import { formatCurrency, TENANTS, AUDIT_LOGS, SALES_TREND } from '@/lib/mockData';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import Link from 'next/link';
 
 function AdminDash() {
+  const { users } = useAuth();
+
   const metrics = [
-    { label: 'Global Revenue (Today)', value: '₹8.4L', trend: '+12%', icon: '💰', color: '#2E5AFF', bg: '#e8edff' },
-    { label: 'Active Tenants', value: '4', trend: '+1 this month', icon: '🏢', color: '#1ABC9C', bg: '#e8fdf7' },
-    { label: 'Total Orders', value: '3,420', trend: '+8%', icon: '📋', color: '#FF8A34', bg: '#fff3e8' },
-    { label: 'Low Stock Alerts', value: '23', trend: 'Global', icon: '⚠️', color: '#FF3B30', bg: '#fff0ef' },
-    { label: 'Active Theft Reports', value: '5', trend: 'Needs review', icon: '🚨', color: '#9B59B6', bg: '#f3eeff' },
-    { label: 'Avg Bill Value', value: '₹365', trend: '+₹22', icon: '🧾', color: '#F39C12', bg: '#fffbec' },
+    { label: 'Global Revenue (Today)', value: '₹0', trend: 'No data yet', icon: '💰', color: '#2E5AFF', bg: '#e8edff' },
+    { label: 'Active Tenants', value: String(TENANTS.length || 0), trend: 'Add via Tenants', icon: '🏢', color: '#1ABC9C', bg: '#e8fdf7' },
+    { label: 'Total Orders', value: '0', trend: 'Start taking orders', icon: '📋', color: '#FF8A34', bg: '#fff3e8' },
+    { label: 'Low Stock Alerts', value: '0', trend: 'Add inventory', icon: '⚠️', color: '#FF3B30', bg: '#fff0ef' },
+    { label: 'Active Theft Reports', value: '0', trend: 'All clear', icon: '🚨', color: '#9B59B6', bg: '#f3eeff' },
+    { label: 'System Users', value: String(users.length), trend: 'Registered accounts', icon: '👥', color: '#F39C12', bg: '#fffbec' },
   ];
 
   return (
@@ -70,8 +72,8 @@ function AdminDash() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[
               { href: '/admin/tenants', icon: '🏢', label: 'Manage Tenants', sub: `${TENANTS.length} total`, color: '#1ABC9C' },
-              { href: '/admin/users', icon: '👥', label: 'Manage All Users', sub: '156 users across tenants', color: '#2E5AFF' },
-              { href: '/admin/audit', icon: '📋', label: 'View Audit Logs', sub: '12,450 entries', color: '#9B59B6' },
+              { href: '/admin/users', icon: '👥', label: 'Manage All Users', sub: `${users.length} registered`, color: '#2E5AFF' },
+              { href: '/admin/audit', icon: '📋', label: 'View Audit Logs', sub: `${AUDIT_LOGS.length} entries`, color: '#9B59B6' },
               { href: '/admin/anticipate', icon: '🔮', label: 'Anticipate View', sub: '7-day forecast ready', color: '#FF8A34' },
               { href: '/admin/config', icon: '⚙️', label: 'Global Config', sub: 'Taxes, gateways, policies', color: '#F39C12' },
             ].map(item => (
@@ -102,16 +104,20 @@ function AdminDash() {
           <table className="data-table">
             <thead><tr><th>Tenant</th><th>Domain</th><th>Plan</th><th>Hotels</th><th>Status</th><th>Created</th></tr></thead>
             <tbody>
-              {TENANTS.map(t => (
-                <tr key={t.id}>
-                  <td><strong>{t.name}</strong></td>
-                  <td style={{ color: 'var(--text-secondary)', fontFamily: 'monospace', fontSize: 12 }}>{t.domain}</td>
-                  <td><span className="badge badge-blue">{t.plan}</span></td>
-                  <td>{t.hotels}</td>
-                  <td><span className={`badge ${t.status === 'active' ? 'badge-green' : t.status === 'trial' ? 'badge-orange' : 'badge-red'}`}>{t.status}</span></td>
-                  <td style={{ color: 'var(--text-secondary)', fontSize: 12 }}>{t.created}</td>
-                </tr>
-              ))}
+              {TENANTS.length === 0 ? (
+                <tr><td colSpan={6} style={{ textAlign: 'center', padding: 32, color: '#94A3B8', fontSize: 13 }}>No tenants yet. Add your first tenant to get started.</td></tr>
+              ) : (
+                TENANTS.map(t => (
+                  <tr key={t.id}>
+                    <td><strong>{t.name}</strong></td>
+                    <td style={{ color: 'var(--text-secondary)', fontFamily: 'monospace', fontSize: 12 }}>{t.domain}</td>
+                    <td><span className="badge badge-blue">{t.plan}</span></td>
+                    <td>{t.hotels}</td>
+                    <td><span className={`badge ${t.status === 'active' ? 'badge-green' : t.status === 'trial' ? 'badge-orange' : 'badge-red'}`}>{t.status}</span></td>
+                    <td style={{ color: 'var(--text-secondary)', fontSize: 12 }}>{t.created}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -127,16 +133,20 @@ function AdminDash() {
           <table className="data-table">
             <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Resource</th><th>Tenant</th><th>Severity</th></tr></thead>
             <tbody>
-              {AUDIT_LOGS.slice(0, 5).map(log => (
-                <tr key={log.id}>
-                  <td style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{new Date(log.timestamp).toLocaleTimeString()}</td>
-                  <td><strong>{log.user}</strong><br /><span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{log.role}</span></td>
-                  <td><span className="badge badge-gray">{log.action}</span></td>
-                  <td style={{ fontSize: 12 }}>{log.resource} #{log.resourceId}</td>
-                  <td style={{ fontSize: 12 }}>{log.tenant}</td>
-                  <td><span className={`badge ${log.severity === 'critical' ? 'badge-red' : log.severity === 'warning' ? 'badge-orange' : 'badge-green'}`}>{log.severity}</span></td>
-                </tr>
-              ))}
+              {AUDIT_LOGS.length === 0 ? (
+                <tr><td colSpan={6} style={{ textAlign: 'center', padding: 32, color: '#94A3B8', fontSize: 13 }}>No audit logs yet. Actions by users will appear here.</td></tr>
+              ) : (
+                AUDIT_LOGS.slice(0, 5).map(log => (
+                  <tr key={log.id}>
+                    <td style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{new Date(log.timestamp).toLocaleTimeString()}</td>
+                    <td><strong>{log.user}</strong><br /><span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{log.role}</span></td>
+                    <td><span className="badge badge-gray">{log.action}</span></td>
+                    <td style={{ fontSize: 12 }}>{log.resource} #{log.resourceId}</td>
+                    <td style={{ fontSize: 12 }}>{log.tenant}</td>
+                    <td><span className={`badge ${log.severity === 'critical' ? 'badge-red' : log.severity === 'warning' ? 'badge-orange' : 'badge-green'}`}>{log.severity}</span></td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -146,5 +156,5 @@ function AdminDash() {
 }
 
 export default function AdminDashboardPage() {
-  return <AuthProvider><AdminDash /></AuthProvider>;
+  return <AdminDash />;
 }

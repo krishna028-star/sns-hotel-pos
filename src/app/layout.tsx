@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth';
 import { NotificationProvider } from '@/lib/notifications';
+import Providers from '@/components/Providers';
 
 const inter = Inter({ subsets: ['latin'], display: 'swap' });
 
@@ -80,7 +81,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <AuthProvider>
           <NotificationProvider>
-            {children}
+            <Providers>
+              {children}
+            </Providers>
           </NotificationProvider>
         </AuthProvider>
       </body>

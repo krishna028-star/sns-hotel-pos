@@ -1,9 +1,12 @@
 'use client';
 import React from 'react';
+
+import { useRouter } from "next/navigation";
 import DashboardLayout from '@/components/DashboardLayout';
 import { BOOKINGS } from '@/lib/mockData';
 
 function MyBookings() {
+  const router = useRouter();
   return (
     <DashboardLayout title="My Bookings">
       <div className="page-header">
@@ -11,11 +14,11 @@ function MyBookings() {
           <div className="page-header-title">📅 My Bookings</div>
           <div className="page-header-sub">Your table reservations at SNS Hotels</div>
         </div>
-        <a href="/customer/book"><button className="btn btn-primary">+ New Booking</button></a>
+        <button className="btn btn-primary" onClick={() => router.push("/customer/book")}>+ New Booking</button>
       </div>
 
       {BOOKINGS.length === 0 ? (
-        <div className="card"><div className="empty-state"><div className="empty-state-icon">📅</div><div className="empty-state-title">No Bookings Yet</div><div className="empty-state-sub">Reserve your first table for a great dining experience!</div><a href="/customer/book"><button className="btn btn-primary" style={{ marginTop: 12 }}>Book a Table</button></a></div></div>
+        <div className="card"><div className="empty-state"><div className="empty-state-icon">📅</div><div className="empty-state-title">No Bookings Yet</div><div className="empty-state-sub">Reserve your first table for a great dining experience!</div><button className="btn btn-primary" style={{ marginTop: 12 }} onClick={() => router.push("/customer/book")}>Book a Table</button></div></div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {BOOKINGS.map(b => (

@@ -1,5 +1,7 @@
 'use client';
 import React, { useState } from 'react';
+
+import { useRouter } from "next/navigation";
 import DashboardLayout from '@/components/DashboardLayout';
 import { ACTIVE_ORDERS, PENDING_KOTS, TABLES, formatCurrency } from '@/lib/mockData';
 
@@ -7,6 +9,7 @@ const statusColor: Record<string, string> = { ready: '#00C48C', cooking: '#FF8A3
 const statusLabel: Record<string, string> = { ready: '✅ Ready', cooking: '🔥 Cooking', kot_sent: '📤 KOT Sent', bill_requested: '🧾 Bill Req.', pending: '⏳ Pending' };
 
 function ManagerDash() {
+  const router = useRouter();
   const occupied = TABLES.filter(t => t.status === 'occupied').length;
   const free = TABLES.filter(t => t.status === 'free').length;
   const reserved = TABLES.filter(t => t.status === 'reserved').length;
@@ -23,8 +26,8 @@ function ManagerDash() {
           </div>
         </div>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
-          <a href="/manager/live-orders"><button className="btn btn-sm" style={{ background: '#fff', color: '#2E5AFF' }}>🔴 Live Orders</button></a>
-          <a href="/manager/staff"><button className="btn btn-sm" style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}>👥 Staff</button></a>
+          <button className="btn btn-sm" style={{ background: '#fff', color: '#2E5AFF' }} onClick={() => router.push("/manager/live-orders")}>🔴 Live Orders</button>
+          <button className="btn btn-sm" style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }} onClick={() => router.push("/manager/staff")}>👥 Staff</button>
         </div>
       </div>
 
@@ -50,7 +53,7 @@ function ManagerDash() {
         <div className="card">
           <div className="card-header">
             <div className="card-title">🔴 Live Orders</div>
-            <a href="/manager/live-orders"><button className="btn btn-outline btn-sm">View All</button></a>
+            <button className="btn btn-outline btn-sm" onClick={() => router.push("/manager/live-orders")}>View All</button>
           </div>
           <div style={{ padding: '8px 20px 20px' }}>
             {ACTIVE_ORDERS.map(o => (

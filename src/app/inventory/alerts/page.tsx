@@ -1,9 +1,11 @@
 'use client';
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import { INGREDIENTS, formatCurrency } from '@/lib/mockData';
 
 function LowStockAlerts() {
+  const router = useRouter();
   const critical = INGREDIENTS.filter(i => i.status === 'critical');
   const low = INGREDIENTS.filter(i => i.status === 'low');
 
@@ -43,7 +45,8 @@ function LowStockAlerts() {
                     <div style={{ fontSize: 11, color: '#94A3B8' }}>Unit Cost</div>
                     <div style={{ fontWeight: 700 }}>₹{i.unitCost}/{i.unit}</div>
                   </div>
-                  <a href="/inventory/purchase-orders"><button className="btn btn-danger btn-sm">🛒 Create PO</button></a>
+                  {/* BUG FIX: <a><button> is invalid HTML — replaced with router.push */}
+                  <button className="btn btn-danger btn-sm" onClick={() => router.push('/inventory/purchase-orders')}>🛒 Create PO</button>
                 </div>
               </div>
             ))}
@@ -67,12 +70,22 @@ function LowStockAlerts() {
                   <div style={{ width: 80 }}>
                     <div className="progress-bar"><div className="progress-fill stock-low" style={{ width: `${Math.min(100, (i.stock / i.reorder) * 100)}%` }} /></div>
                   </div>
-                  <a href="/inventory/purchase-orders"><button className="btn btn-outline btn-sm" style={{ borderColor: '#FF8A34', color: '#FF8A34' }}>+ Create PO</button></a>
+                  {/* BUG FIX: <a><button> is invalid HTML — replaced with router.push */}
+                  <button className="btn btn-outline btn-sm" style={{ borderColor: '#FF8A34', color: '#FF8A34' }} onClick={() => router.push('/inventory/purchase-orders')}>+ Create PO</button>
                 </div>
               </div>
             ))}
           </div>
         </>
+      )}
+      {critical.length === 0 && low.length === 0 && (
+        <div className="card">
+          <div className="empty-state">
+            <div className="empty-state-icon">✅</div>
+            <div className="empty-state-title">All Stock Levels Healthy</div>
+            <div className="empty-state-sub">No critical or low-stock items at this time.</div>
+          </div>
+        </div>
       )}
     </DashboardLayout>
   );

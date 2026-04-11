@@ -45,7 +45,8 @@ export default function Topbar({ title }: TopbarProps) {
                       <div className={`notif-type-dot ${n.type}`} />
                       <div className="notif-content">
                         <div className="notif-msg">{n.message}</div>
-                        <div className="notif-time">{n.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                        {/* BUG FIX: n.time is ISO string, not Date — must parse before calling toLocaleTimeString */}
+                        <div className="notif-time">{new Date(n.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                       </div>
                     </div>
                   ))
