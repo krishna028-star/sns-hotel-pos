@@ -30,7 +30,7 @@ function ChefActive() {
                     <span className="badge badge-blue">Cooking 🔥</span>
                   </div>
                 </div>
-                {order.items.map((item, i) => (
+                {order.items.map((item: any, i: number) => (
                   <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8 }}>
                     <div style={{ width: 30, height: 30, borderRadius: 8, background: '#e8edff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, color: '#2E5AFF', fontSize: 13, flexShrink: 0 }}>×{item.qty}</div>
                     <div style={{ fontWeight: 600 }}>{item.name}</div>
