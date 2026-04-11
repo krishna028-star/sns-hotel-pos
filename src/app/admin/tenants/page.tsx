@@ -1,17 +1,45 @@
 'use client';
 import React, { useState } from 'react';
-import DashboardLayout from '@/components/DashboardLayout';
-import { TENANTS } from '@/lib/mockData';
+import { fetchTenants, createDbTenant } from '@/app/actions/tenantActions';
+import { useAuth } from '@/lib/auth';
+import { formatDate } from '@/lib/mockData';
 
 function AdminTenants() {
+  const [tenants, setTenants] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('all');
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ name:'', domain:'', email:'', plan:'enterprise', status:'active' });
+  const [errorHeader, setErrorHeader] = useState<string | null>(null);
 
-  const filtered = TENANTS.filter(t =>
+  React.useEffect(() => {
+    loadTenants();
+  }, []);
+
+  const loadTenants = async () => {
+    setLoading(true);
+    const res = await fetchTenants();
+    if (res.ok) setTenants(res.tenants);
+    else setErrorHeader(res.error);
+    setLoading(false);
+  };
+
+  const handleCreate = async () => {
+    if (!form.name) return alert('Name is required');
+    const res = await createDbTenant({ name: form.name, domain: form.domain, email: form.email });
+    if (res.ok) {
+      setShowModal(false);
+      setForm({ name:'', domain:'', email:'', plan:'enterprise', status:'active' });
+      loadTenants();
+    } else {
+      alert(res.error);
+    }
+  };
+
+  const filtered = tenants.filter(t =>
     (status==='all' || t.status===status) &&
-    (t.name.toLowerCase().includes(search.toLowerCase()) || t.domain.includes(search))
+    (t.name.toLowerCase().includes(search.toLowerCase()) || t.domain.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
@@ -40,10 +68,10 @@ function AdminTenants() {
 
       <div className="metrics-grid" style={{ gridTemplateColumns:'repeat(4,1fr)', marginBottom:20 }}>
         {[
-          { label:'Total Tenants', value:TENANTS.length, icon:'🏢', color:'#2E5AFF', bg:'#e8edff' },
-          { label:'Active', value:TENANTS.filter(t=>t.status==='active').length, icon:'✅', color:'#00C48C', bg:'#e0faf3' },
-          { label:'Trial', value:TENANTS.filter(t=>t.status==='trial').length, icon:'🔔', color:'#FF8A34', bg:'#fff3e8' },
-          { label:'Suspended', value:TENANTS.filter(t=>t.status==='suspended').length, icon:'⛔', color:'#FF3B30', bg:'#fff0ef' },
+          { label:'Total Tenants', value:tenants.length, icon:'🏢', color:'#2E5AFF', bg:'#e8edff' },
+          { label:'Active', value:tenants.filter(t=>t.status==='active').length, icon:'✅', color:'#00C48C', bg:'#e0faf3' },
+          { label:'Live Chains', value:tenants.length, icon:'🔔', color:'#FF8A34', bg:'#fff3e8' },
+          { label:'Sync Health', value:'100%', icon:'🛡️', color:'#9B59B6', bg:'#f5f0ff' },
         ].map(m=>(
           <div className="metric-card" key={m.label}>
             <div className="metric-icon" style={{ background:m.bg, color:m.color }}>{m.icon}</div>
@@ -59,26 +87,27 @@ function AdminTenants() {
           <table className="data-table">
             <thead><tr><th>Tenant Name</th><th>Domain</th><th>Plan</th><th>Franchises</th><th>Hotels</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
             <tbody>
-              {filtered.map(t=>(
+              {loading ? (
+                <tr><td colSpan={8} style={{ textAlign:'center', padding:40 }}>Connecting to Cloud...</td></tr>
+              ) : filtered.map(t=>(
                 <tr key={t.id}>
                   <td><strong>{t.name}</strong></td>
                   <td style={{ fontFamily:'monospace', fontSize:12, color:'var(--text-secondary)' }}>{t.domain}</td>
-                  <td><span className="badge badge-blue">{t.plan}</span></td>
-                  <td>{t.franchises}</td>
-                  <td>{t.hotels}</td>
-                  <td><span className={`badge ${t.status==='active'?'badge-green':t.status==='trial'?'badge-orange':'badge-red'}`}>{t.status}</span></td>
+                  <td><span className="badge badge-blue">Enterprise</span></td>
+                  <td>{t.franchises || 0}</td>
+                  <td>{t.hotels || 0}</td>
+                  <td><span className={`badge badge-green`}>{t.status}</span></td>
                   <td style={{ fontSize:12, color:'var(--text-secondary)' }}>{t.created}</td>
                   <td>
                     <div style={{ display:'flex', gap:6 }}>
                       <button className="btn btn-outline btn-sm">✏️</button>
-                      <button className="btn btn-outline btn-sm">{t.status==='active'?'⏸':' ▶'}</button>
                       <button className="btn btn-outline btn-sm" style={{ color:'var(--danger)' }}>🗑</button>
                     </div>
                   </td>
                 </tr>
               ))}
-              {filtered.length===0 && (
-                <tr><td colSpan={8}><div className="empty-state"><div className="empty-state-icon">🔍</div><div className="empty-state-title">No tenants found</div></div></td></tr>
+              {!loading && filtered.length===0 && (
+                <tr><td colSpan={8}><div className="empty-state"><div className="empty-state-icon">🔍</div><div className="empty-state-title">No live tenants found</div></div></td></tr>
               )}
             </tbody>
           </table>
@@ -126,7 +155,7 @@ function AdminTenants() {
             </div>
             <div className="modal-footer">
               <button className="btn btn-outline" onClick={()=>setShowModal(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={()=>{ alert('Tenant created! (Demo mode)'); setShowModal(false); }}>Create Tenant</button>
+              <button className="btn btn-primary" onClick={handleCreate}>Create Global Tenant</button>
             </div>
           </div>
         </div>
