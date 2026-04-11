@@ -70,6 +70,15 @@ model User {
   hotelId       String?
   hotel         Hotel?   @relation("HotelStaff", fields: [hotelId], references: [id])
   
+  // HR & Security Details
+  staffId       String?  @unique // Unique Role/Staff ID (e.g. SNS-WKR-101)
+  age           Int?
+  joiningDate   DateTime? @default(now())
+  salary        Decimal? @db.Decimal(10, 2)
+  workingDays   Int?     @default(26)
+  presenceThisMonth Int? @default(0)
+  remarks       String?
+  
   auditLogs     AuditLog[]
   orders        Order[]  @relation("CustomerOrders")
   takenOrders   Order[]  @relation("WaiterOrders")

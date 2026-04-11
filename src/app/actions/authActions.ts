@@ -38,7 +38,14 @@ export async function fetchUsers() {
       tenant: u.tenant.name,
       hotel: u.hotel?.name || null,
       avatar: u.avatar || 'U',
-      password: u.passwordHash // Keep this synced with frontend interface temporarily
+      password: u.passwordHash,
+      staffId: u.staffId || undefined,
+      age: u.age || undefined,
+      joiningDate: u.joiningDate?.toISOString() || undefined,
+      salary: u.salary ? Number(u.salary) : undefined,
+      workingDays: u.workingDays || undefined,
+      presenceThisMonth: u.presenceThisMonth || undefined,
+      remarks: u.remarks || undefined,
     })) };
   } catch (error: any) {
     return { ok: false, error: error.message };
@@ -63,7 +70,14 @@ export async function createDbUser(userData: any) {
         role: roleName,
         avatar: userData.avatar,
         tenantId: tenant.id,
-        hotelId: hotel.id
+        hotelId: hotel.id,
+        staffId: userData.staffId,
+        age: userData.age ? parseInt(userData.age) : undefined,
+        joiningDate: userData.joiningDate ? new Date(userData.joiningDate) : new Date(),
+        salary: userData.salary ? parseFloat(userData.salary) : undefined,
+        workingDays: userData.workingDays ? parseInt(userData.workingDays) : 26,
+        presenceThisMonth: userData.presenceThisMonth ? parseInt(userData.presenceThisMonth) : 0,
+        remarks: userData.remarks,
       }
     });
     return { ok: true, user: u };

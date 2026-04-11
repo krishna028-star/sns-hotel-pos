@@ -32,12 +32,12 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
   const [editId, setEditId] = useState<number | string | null>(null);
 
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    role: '',
-    tenant: currentUser?.tenant || 'SNS Grand Hotels',
     hotel: '',
-    password: ''
+    password: '',
+    staffId: '',
+    age: '',
+    salary: '',
+    remarks: ''
   });
 
   const availableRoles = roleFilterOptions || [
@@ -62,7 +62,11 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
       role: '',
       tenant: currentUser?.tenant || 'SNS Grand Hotels',
       hotel: '',
-      password: ''
+      password: '',
+      staffId: '',
+      age: '',
+      salary: '',
+      remarks: ''
     });
   };
 
@@ -153,7 +157,7 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
         <div className="table-wrap">
           <table className="data-table">
             <thead>
-              <tr><th>Name</th><th>Email</th><th>Role</th><th>Tenant</th><th>Hotel</th><th>Status</th><th>Actions</th></tr>
+              <tr><th>Staff ID</th><th>Name</th><th>Email</th><th>Role</th><th>Hotel</th><th>Details</th><th>Status</th><th>Actions</th></tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
@@ -161,6 +165,7 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
               ) : (
                 filtered.map(u => (
                   <tr key={u.id}>
+                    <td><code style={{ fontSize: 11, background: '#f1f5f9', padding: '2px 6px', borderRadius: 4 }}>{u.staffId || 'TBD'}</code></td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <div style={{
@@ -177,8 +182,14 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
                     </td>
                     <td style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{u.email}</td>
                     <td><span className={`badge ${ROLE_BADGE[u.role] ?? 'badge-gray'}`} style={{ fontSize: 10 }}>{roleLabel(u.role)}</span></td>
-                    <td style={{ fontSize: 12 }}>{u.tenant ?? '—'}</td>
                     <td style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{u.hotel ?? '—'}</td>
+                    <td>
+                      <div style={{ fontSize: 10, lineHeight: 1.4 }}>
+                        {u.age && <div>Age: {u.age}</div>}
+                        {u.salary && <div>Salary: ₹{u.salary}</div>}
+                        {u.joiningDate && <div>Joined: {new Date(u.joiningDate).toLocaleDateString()}</div>}
+                      </div>
+                    </td>
                     <td><span className="badge badge-green">active</span></td>
                     <td>
                       <div style={{ display: 'flex', gap: 6 }}>
@@ -259,11 +270,29 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
                 </div>
               )}
               <div className="form-group">
-                <label className="form-label">Hotel Assignment</label>
-                <input className="form-input" placeholder="e.g. SNS Beach Resort (leave blank if N/A)" value={formData.hotel} onChange={e => setFormData({ ...formData, hotel: e.target.value })} />
+                <label className="form-label">System Staff ID *</label>
+                <input className="form-input" placeholder="e.g. SNS-WKR-101" value={formData.staffId} onChange={e => setFormData({ ...formData, staffId: e.target.value })} disabled={!!editId} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="form-group">
+                  <label className="form-label">Age</label>
+                  <input className="form-input" type="number" value={formData.age} onChange={e => setFormData({ ...formData, age: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Monthly Salary (₹)</label>
+                  <input className="form-input" type="number" value={formData.salary} onChange={e => setFormData({ ...formData, salary: e.target.value })} />
+                </div>
               </div>
               <div className="form-group">
-                <label className="form-label">Tenant / Chain</label>
+                <label className="form-label">Remarks / Special Notes</label>
+                <textarea className="form-input" style={{ minHeight: 60 }} value={formData.remarks} onChange={e => setFormData({ ...formData, remarks: e.target.value })} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Hotel Assignment</label>
+                <input className="form-input" placeholder="e.g. SNS Beach Resort" value={formData.hotel} onChange={e => setFormData({ ...formData, hotel: e.target.value })} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Franchise / Tenant</label>
                 <input className="form-input" placeholder="e.g. SNS Grand Hotels" value={formData.tenant} onChange={e => setFormData({ ...formData, tenant: e.target.value })} />
               </div>
             </div>

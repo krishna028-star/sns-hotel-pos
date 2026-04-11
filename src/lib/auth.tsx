@@ -11,6 +11,13 @@ export interface User {
   tenant: string | null;
   hotel: string | null;
   avatar: string;
+  staffId?: string;
+  age?: number;
+  joiningDate?: string;
+  salary?: number;
+  workingDays?: number;
+  presenceThisMonth?: number;
+  remarks?: string;
 }
 
 // Role hierarchy (lower number = higher power)
