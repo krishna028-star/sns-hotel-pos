@@ -268,8 +268,8 @@ export const HOURLY_SALES = [
 ];
 
 export const FRANCHISE_SALES = [
-  { name: 'North Region', revenue: 280000 },
-  { name: 'South Region', revenue: 142000 },
+  { name: 'North Region', revenue: 280000, orders: 1240, hotels: 2 },
+  { name: 'South Region', revenue: 142000, orders: 680,  hotels: 1 },
 ];
 
 // ─── Audit Logs ─────────────────────────────────────────────────────────────────
