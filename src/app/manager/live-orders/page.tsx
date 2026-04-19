@@ -1,16 +1,18 @@
 'use client';
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { ACTIVE_ORDERS, PENDING_KOTS, formatCurrency } from '@/lib/mockData';
+import { formatCurrency } from '@/lib/mockData';
 
 const statusColor: Record<string, string> = { ready: '#00C48C', cooking: '#FF8A34', kot_sent: '#2E5AFF', bill_requested: '#9B59B6', pending: '#94A3B8' };
 const statusEmoji: Record<string, string> = { ready: '✅', cooking: '🔥', kot_sent: '📤', bill_requested: '🧾', pending: '⏳' };
 
 type Order = typeof ACTIVE_ORDERS[0];
 
+import { useData } from '@/lib/DataContext';
+
 function LiveOrders() {
-  const [orders] = useState(ACTIVE_ORDERS);
-  const [selected, setSelected] = useState<Order | null>(null);
+  const { activeOrders: orders, pendingKots } = useData();
+  const [selected, setSelected] = useState<any | null>(null);
 
   return (
     <DashboardLayout title="Live Orders Monitor">
@@ -25,7 +27,7 @@ function LiveOrders() {
         <div className="stats-row">
           {[
             { label: 'Active', value: orders.length, color: '#2E5AFF' },
-            { label: 'Pending KOTs', value: PENDING_KOTS.length, color: '#FF3B30' },
+            { label: 'Pending KOTs', value: pendingKots.length, color: '#FF3B30' },
             { label: 'Ready to Serve', value: orders.filter(o => o.status === 'ready').length, color: '#00C48C' },
           ].map(s => (
             <div key={s.label} className="stat-pill">
@@ -37,13 +39,13 @@ function LiveOrders() {
         </div>
       </div>
 
-      {PENDING_KOTS.length > 0 && (
+      {pendingKots.length > 0 && (
         <div className="alarm-card" style={{ marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <span style={{ fontSize: 24 }}>🔔</span>
             <div>
               <div style={{ fontWeight: 700, color: '#FF8A34' }}>Unaccepted KOTs — Action Required!</div>
-              <div style={{ fontSize: 12, color: '#64748B' }}>{PENDING_KOTS.length} KOT(s) have not been accepted by any chef</div>
+              <div style={{ fontSize: 12, color: '#64748B' }}>{pendingKots.length} KOT(s) have not been accepted by any chef</div>
             </div>
           </div>
         </div>

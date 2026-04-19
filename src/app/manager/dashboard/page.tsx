@@ -41,8 +41,8 @@ function ManagerDash() {
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>
         {[
           { label: "Today's Revenue", value: formatCurrency(totalRev), trend: '↑ 12%', icon: '💰', color: '#2E5AFF', bg: '#e8edff' },
-          { label: 'Active Orders', value: ACTIVE_ORDERS.length, trend: 'Right now', icon: '📋', color: '#FF8A34', bg: '#fff3e8' },
-          { label: 'Pending KOTs', value: PENDING_KOTS.length, trend: 'Needs attention', icon: '🔔', color: '#FF3B30', bg: '#fff0ef' },
+          { label: 'Active Orders', value: activeOrders.length, trend: 'Right now', icon: '📋', color: '#FF8A34', bg: '#fff3e8' },
+          { label: 'Pending KOTs', value: pendingKots.length, trend: 'Needs attention', icon: '🔔', color: '#FF3B30', bg: '#fff0ef' },
           { label: 'Staff On Duty', value: hotelStaff.length, trend: 'Across shifts', icon: '👥', color: '#00C48C', bg: '#e8fdf7' },
         ].map(m => (
           <div className="metric-card" key={m.label}>
@@ -62,7 +62,7 @@ function ManagerDash() {
             <button className="btn btn-outline btn-sm" onClick={() => router.push("/manager/live-orders")}>View All</button>
           </div>
           <div style={{ padding: '8px 20px 20px' }}>
-            {ACTIVE_ORDERS.map(o => (
+            {activeOrders.map(o => (
               <div key={o.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: '1px solid #F1F5F9' }}>
                 <div style={{ width: 40, height: 40, borderRadius: 10, background: '#F4F6FB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#2E5AFF', fontSize: 16 }}>T{o.tableNum}</div>
                 <div style={{ flex: 1 }}>
@@ -75,7 +75,7 @@ function ManagerDash() {
                 <div style={{ fontWeight: 700, color: '#2E5AFF' }}>{formatCurrency(o.total)}</div>
               </div>
             ))}
-            {ACTIVE_ORDERS.length === 0 && <div style={{ padding: 20, textAlign: 'center', color: '#94A3B8' }}>No live orders</div>}
+            {activeOrders.length === 0 && <div style={{ padding: 20, textAlign: 'center', color: '#94A3B8' }}>No live orders</div>}
           </div>
         </div>
 

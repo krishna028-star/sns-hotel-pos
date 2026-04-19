@@ -1,7 +1,6 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { PENDING_KOTS, ACTIVE_ORDERS } from '@/lib/mockData';
 
 type KOTStatus = 'pending' | 'cooking' | 'ready';
 
@@ -15,16 +14,26 @@ interface KOT {
   status: KOTStatus;
 }
 
+import { useData } from '@/lib/DataContext';
+
 function KitchenDisplay() {
-  const [kots, setKots] = useState<KOT[]>(
-    PENDING_KOTS.map(k => ({ ...k, status: 'pending' as KOTStatus }))
-  );
+  const { pendingKots: dataKots, updateItem } = useData();
+  const [kots, setKots] = useState<KOT[]>([]);
+
+  useEffect(() => {
+    // Sync local flow state with context data on mount/change
+    setKots(dataKots.map(k => ({ ...k, status: k.status || 'pending' as KOTStatus })));
+  }, [dataKots]);
 
   const advance = (id: string) => {
     setKots(prev => prev.map(k => {
       if (k.id !== id) return k;
       const next: Record<KOTStatus, KOTStatus | null> = { pending: 'cooking', cooking: 'ready', ready: null };
       const nextStatus = next[k.status];
+      
+      // Update global context too
+      if (nextStatus) updateItem('pendingKots', id, { status: nextStatus });
+      
       return nextStatus ? { ...k, status: nextStatus } : k;
     }));
   };

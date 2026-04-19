@@ -1,21 +1,27 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { TABLES, ACTIVE_ORDERS, MENU_ITEMS, MENU_CATEGORIES, formatCurrency } from '@/lib/mockData';
+import { MENU_CATEGORIES, formatCurrency } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 
 type TableStatus = 'free' | 'occupied' | 'reserved';
 
 function WorkerDash() {
-  const [tables, setTables] = useState(TABLES);
-  const [selectedTable, setSelectedTable] = useState<typeof TABLES[0] | null>(null);
+  const { tables: dataTables, updateItem, menuItems: allMenuItems } = useData();
+  const [tables, setTables] = useState(dataTables);
+  const [selectedTable, setSelectedTable] = useState<any | null>(null);
   const [orderItems, setOrderItems] = useState<{ id: number; name: string; price: number; qty: number }[]>([]);
   const [menuCategory, setMenuCategory] = useState('All');
   const [step, setStep] = useState<'table' | 'menu' | 'confirm'>('table');
 
-  const occupied = tables.filter(t => t.status === 'occupied').length;
-  const free = tables.filter(t => t.status === 'free').length;
+  useEffect(() => {
+    setTables(dataTables);
+  }, [dataTables]);
 
-  const addItem = (item: typeof MENU_ITEMS[0]) => {
+  const occupied = tables.filter((t: any) => t.status === 'occupied').length;
+  const free = tables.filter((t: any) => t.status === 'free').length;
+
+  const addItem = (item: any) => {
     setOrderItems(prev => {
       const existing = prev.find(i => i.id === item.id);
       if (existing) return prev.map(i => i.id === item.id ? { ...i, qty: i.qty + 1 } : i);
@@ -27,13 +33,14 @@ function WorkerDash() {
   const total = orderItems.reduce((a, i) => a + i.price * i.qty, 0);
 
   const sendKOT = () => {
-    setTables(prev => prev.map(t => t.id === selectedTable?.id ? { ...t, status: 'occupied' as TableStatus } : t));
+    updateItem('tables', selectedTable?.id, { status: 'occupied' });
+    // Also should technically add to activeOrders/pendingKots
     setStep('table');
     setSelectedTable(null);
     setOrderItems([]);
   };
 
-  const menuItems = MENU_ITEMS.filter(i => i.available && (menuCategory === 'All' || i.category === menuCategory));
+  const menuItems = allMenuItems.filter((i: any) => i.available && (menuCategory === 'All' || i.category === menuCategory));
 
   return (
     <DashboardLayout title="Waiter Dashboard">
