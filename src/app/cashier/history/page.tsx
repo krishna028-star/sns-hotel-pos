@@ -7,7 +7,6 @@ import { formatCurrency } from '@/lib/mockData';
 const methodColor: Record<string, string> = { cash: 'badge-green', card: 'badge-blue', upi: 'badge-purple', app: 'badge-orange' };
 
 function PaymentHistory() {
-function PaymentHistory() {
   const { activeOrders } = useData();
   const history = activeOrders.filter((o: any) => o.status === 'paid').map((o: any) => ({
     id: `PAY-${o.id}`,

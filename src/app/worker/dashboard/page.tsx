@@ -21,7 +21,7 @@ function WorkerDash() {
   const occupied = tables.filter((t: any) => t.status === 'occupied').length;
   const free = tables.filter((t: any) => t.status === 'free').length;
 
-  const addItem = (item: any) => {
+  const addOrderItem = (item: any) => {
     setOrderItems(prev => {
       const existing = prev.find(i => i.id === item.id);
       if (existing) return prev.map(i => i.id === item.id ? { ...i, qty: i.qty + 1 } : i);
@@ -118,7 +118,7 @@ function WorkerDash() {
             {menuItems.map(item => {
               const inOrder = orderItems.find(o => o.id === item.id);
               return (
-                <div key={item.id} className="card" style={{ cursor: 'pointer', border: inOrder ? '2px solid #2E5AFF' : '1px solid #E2E8F0' }} onClick={() => addItem(item)}>
+                <div key={item.id} className="card" style={{ cursor: 'pointer', border: inOrder ? '2px solid #2E5AFF' : '1px solid #E2E8F0' }} onClick={() => addOrderItem(item)}>
                   <div style={{ padding: 14, textAlign: 'center' }}>
                     <div style={{ fontSize: 36, marginBottom: 6 }}>{item.image}</div>
                     <div style={{ fontWeight: 700, fontSize: 13 }}>{item.name}</div>
