@@ -1,16 +1,18 @@
 'use client';
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { ACTIVE_ORDERS, formatCurrency } from '@/lib/mockData';
+import { formatCurrency } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 
 const statusColor: Record<string, string> = { ready: '#00C48C', cooking: '#FF8A34', kot_sent: '#2E5AFF', bill_requested: '#9B59B6', pending: '#94A3B8' };
 const statusEmoji: Record<string, string> = { ready: '✅', cooking: '🔥', kot_sent: '📤', bill_requested: '🧾', pending: '⏳' };
 
 function WorkerOrders() {
-  const [orders, setOrders] = useState(ACTIVE_ORDERS.map(o => ({ ...o })));
+  const { activeOrders, updateItem } = useData();
+  const orders = activeOrders.filter((o: any) => o.status !== 'paid');
 
-  const requestBill = (id: string) => setOrders(prev => prev.map(o => o.id === id ? { ...o, status: 'bill_requested' } : o));
-  const markServed = (id: string) => setOrders(prev => prev.filter(o => o.id !== id));
+  const requestBill = (id: string) => updateItem('activeOrders', id, { status: 'bill_requested' });
+  const markServed = (id: string) => updateItem('activeOrders', id, { status: 'served' }); // Unused in this UI directly but good logic
 
   return (
     <DashboardLayout title="Active Orders">

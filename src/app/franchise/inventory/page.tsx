@@ -3,14 +3,17 @@ import React from 'react';
 
 import { useRouter } from "next/navigation";
 import DashboardLayout from '@/components/DashboardLayout';
-import { INGREDIENTS, THEFT_REPORTS, PURCHASE_ORDERS, formatCurrency } from '@/lib/mockData';
+import { formatCurrency } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 function FranchiseInventory() {
   const router = useRouter();
-  const critical = INGREDIENTS.filter(i => i.status === 'critical').length;
-  const pendingPos = PURCHASE_ORDERS.filter(p => p.status === 'pending_approval').length;
-  const totalTheft = THEFT_REPORTS.reduce((a, r) => a + r.loss, 0);
+  const { ingredients, purchaseOrders, theftReports } = useData();
+
+  const critical = ingredients.filter((i: any) => i.status === 'critical').length;
+  const pendingPos = purchaseOrders.filter((p: any) => p.status === 'pending_approval' || p.status === 'pending').length;
+  const totalTheft = theftReports.reduce((a: number, r: any) => a + (r.loss || 0), 0);
 
   return (
     <DashboardLayout title="Franchise Inventory">
@@ -26,7 +29,7 @@ function FranchiseInventory() {
           { label: 'Critical Stock Items', value: critical, color: '#FF3B30', bg: '#fff0ef', icon: '🔴' },
           { label: 'Pending PO Approvals', value: pendingPos, color: '#FF8A34', bg: '#fff3e8', icon: '📋' },
           { label: 'Theft Loss (Month)', value: formatCurrency(totalTheft), color: '#9B59B6', bg: '#f5f0ff', icon: '🚨' },
-          { label: 'Total Ingredients', value: INGREDIENTS.length, color: '#00C48C', bg: '#e8fdf7', icon: '📦' },
+          { label: 'Total Ingredients', value: ingredients.length, color: '#00C48C', bg: '#e8fdf7', icon: '📦' },
         ].map(m => (
           <div className="metric-card" key={m.label}>
             <div className="metric-icon" style={{ background: m.bg, color: m.color }}>{m.icon}</div>
@@ -49,9 +52,9 @@ function FranchiseInventory() {
           <div className="chart-title">📊 Stock Status Distribution</div>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={[
-              { name: 'OK', count: INGREDIENTS.filter(i=>i.status==='ok').length },
-              { name: 'Low', count: INGREDIENTS.filter(i=>i.status==='low').length },
-              { name: 'Critical', count: INGREDIENTS.filter(i=>i.status==='critical').length },
+              { name: 'OK', count: ingredients.filter((i: any)=>i.status==='ok').length },
+              { name: 'Low', count: ingredients.filter((i: any)=>i.status==='low').length },
+              { name: 'Critical', count: ingredients.filter((i: any)=>i.status==='critical').length },
             ]}>
               <XAxis dataKey="name" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
@@ -63,7 +66,7 @@ function FranchiseInventory() {
 
         <div className="card" style={{ padding: 20 }}>
           <div style={{ fontWeight: 700, marginBottom: 16 }}>📋 Pending Purchase Orders</div>
-          {PURCHASE_ORDERS.filter(p => p.status === 'pending_approval').map(po => (
+          {purchaseOrders.filter((p: any) => p.status === 'pending_approval' || p.status === 'pending').map((po: any) => (
             <div key={po.id} style={{ padding: '12px 0', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontWeight: 700 }}>{po.id}</div>

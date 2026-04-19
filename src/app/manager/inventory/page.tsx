@@ -1,11 +1,13 @@
 'use client';
 import React from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { INGREDIENTS, formatCurrency } from '@/lib/mockData';
+import { formatCurrency } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 
 function ManagerInventory() {
-  const critical = INGREDIENTS.filter(i => i.status === 'critical');
-  const low = INGREDIENTS.filter(i => i.status === 'low');
+  const { ingredients } = useData();
+  const critical = ingredients.filter((i: any) => i.status === 'critical');
+  const low = ingredients.filter((i: any) => i.status === 'low');
 
   return (
     <DashboardLayout title="Inventory Overview">
@@ -33,8 +35,8 @@ function ManagerInventory() {
           <table className="data-table">
             <thead><tr><th>Ingredient</th><th>Category</th><th>Stock</th><th>Reorder Point</th><th>Level</th><th>Status</th></tr></thead>
             <tbody>
-              {INGREDIENTS.map(i => {
-                const pct = Math.min(100, (i.stock / (i.reorder * 2)) * 100);
+              {ingredients.map((i: any) => {
+                const pct = Math.min(100, ((i.stock || 0) / ((i.reorder || 1) * 2)) * 100);
                 return (
                   <tr key={i.id}>
                     <td><strong>{i.name}</strong></td>

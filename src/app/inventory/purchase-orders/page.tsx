@@ -1,19 +1,20 @@
 'use client';
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { PURCHASE_ORDERS, formatCurrency } from '@/lib/mockData';
+import { formatCurrency } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 
 type POStatus = 'draft' | 'pending_approval' | 'approved' | 'ordered' | 'received';
 
 function PurchaseOrders() {
-  const [orders, setOrders] = useState(PURCHASE_ORDERS);
+  const { purchaseOrders: orders, addItem: addPO, updateItem: updatePO } = useData();
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ supplier: '', items: '1', amount: '' });
 
-  const receiveOrder = (id: string) => setOrders(prev => prev.map(o => o.id === id ? { ...o, status: 'received' as POStatus } : o));
+  const receiveOrder = (id: string | number) => updatePO('purchaseOrders', id, { status: 'received' as POStatus });
 
   // BUG FIX: Submit button had no handler — PO could never leave draft state
-  const submitForApproval = (id: string) => setOrders(prev => prev.map(o => o.id === id ? { ...o, status: 'pending_approval' as POStatus } : o));
+  const submitForApproval = (id: string | number) => updatePO('purchaseOrders', id, { status: 'pending_approval' as POStatus });
 
   const addOrder = () => {
     if (!form.supplier || !form.amount) return;
@@ -27,7 +28,7 @@ function PurchaseOrders() {
       date: new Date().toISOString().split('T')[0],
       items: parseInt(form.items) || 1
     };
-    setOrders(prev => [newPO, ...prev]);
+    addPO('purchaseOrders', newPO);
     setShowModal(false);
     setForm({ supplier: '', items: '1', amount: '' });
   };
@@ -52,7 +53,7 @@ function PurchaseOrders() {
         {(['draft', 'pending_approval', 'approved', 'ordered', 'received'] as POStatus[]).map(s => (
           <div className="metric-card" key={s} style={{ cursor: 'default' }}>
             <div className="metric-label">{s.replace('_', ' ')}</div>
-            <div className="metric-value" style={{ fontSize: 28 }}>{orders.filter(o => o.status === s).length}</div>
+            <div className="metric-value" style={{ fontSize: 28 }}>{orders.filter((o: any) => o.status === s).length}</div>
           </div>
         ))}
       </div>
@@ -63,7 +64,7 @@ function PurchaseOrders() {
           <table className="data-table">
             <thead><tr><th>PO #</th><th>Supplier</th><th>Date</th><th>Items</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody>
-              {orders.map(po => (
+              {orders.map((po: any) => (
                 <tr key={po.id}>
                   <td><strong>{po.id}</strong></td>
                   <td>{po.supplier}</td>

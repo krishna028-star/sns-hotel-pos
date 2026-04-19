@@ -1,18 +1,18 @@
 'use client';
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { TABLES } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 
 type TableStatus = 'free' | 'occupied' | 'reserved';
 
 function ManagerTables() {
-  const [tables, setTables] = useState(TABLES);
-  const [selected, setSelected] = useState<(typeof TABLES)[0] | null>(null);
+  const { tables, addItem, updateItem, deleteItem } = useData();
+  const [selected, setSelected] = useState<any | null>(null);
   const [filter, setFilter] = useState<'all' | TableStatus>('all');
   const [qrGenerated, setQrGenerated] = useState<number[]>([]);
 
-  const filtered = tables.filter(t => filter === 'all' || t.status === filter);
-  const floors = [...new Set(tables.map(t => t.floor))];
+  const filtered = tables.filter((t: any) => filter === 'all' || t.status === filter);
+  const floors = [...new Set(tables.map((t: any) => t.floor))];
 
   const statusColor: Record<string, string> = { free: '#00C48C', occupied: '#FF3B30', reserved: '#FF8A34' };
   const statusEmoji: Record<string, string> = { free: '🟢', occupied: '🔴', reserved: '🟡' };
@@ -39,9 +39,9 @@ function ManagerTables() {
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 24 }}>
         {[
           { label: 'Total Tables', value: tables.length, color: '#2E5AFF', bg: '#e8edff' },
-          { label: 'Free', value: tables.filter(t => t.status === 'free').length, color: '#00C48C', bg: '#e8fdf7' },
-          { label: 'Occupied', value: tables.filter(t => t.status === 'occupied').length, color: '#FF3B30', bg: '#fff0ef' },
-          { label: 'Reserved', value: tables.filter(t => t.status === 'reserved').length, color: '#FF8A34', bg: '#fff3e8' },
+          { label: 'Free', value: tables.filter((t: any) => t.status === 'free').length, color: '#00C48C', bg: '#e8fdf7' },
+          { label: 'Occupied', value: tables.filter((t: any) => t.status === 'occupied').length, color: '#FF3B30', bg: '#fff0ef' },
+          { label: 'Reserved', value: tables.filter((t: any) => t.status === 'reserved').length, color: '#FF8A34', bg: '#fff3e8' },
         ].map(m => (
           <div className="metric-card" key={m.label} style={{ cursor: 'default' }}>
             <div className="metric-label">{m.label}</div>
@@ -60,11 +60,11 @@ function ManagerTables() {
                 key={t.id}
                 className={`table-box ${t.status} ${selected?.id === t.id ? 'selected' : ''}`}
                 onClick={() => setSelected(t)}
-                title={`Table ${t.number} — ${t.status} (${t.capacity} seats)`}
+                title={`Table ${t.num || t.id} — ${t.status} (${t.cap || 0} seats)`}
               >
-                <div className="table-num">{t.number}</div>
+                <div className="table-num">{t.num || t.id}</div>
                 <div className="table-status">{t.status}</div>
-                <div style={{ fontSize: 10, color: 'inherit', opacity: 0.7 }}>{t.capacity}p</div>
+                <div style={{ fontSize: 10, color: 'inherit', opacity: 0.7 }}>{t.cap || 0}p</div>
               </div>
             ))}
           </div>
@@ -76,12 +76,12 @@ function ManagerTables() {
         <div className="modal-backdrop" onClick={() => setSelected(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <div className="modal-title">Table {selected.number} — {selected.floor}</div>
+              <div className="modal-title">Table {selected.num || selected.id} — {selected.floor}</div>
               <button className="btn btn-ghost" onClick={() => setSelected(null)}>✕</button>
             </div>
             <div className="modal-body">
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-                {[['Capacity', `${selected.capacity} persons`], ['Status', selected.status], ['Floor', selected.floor], ['Order ID', (selected as any).orderId ?? 'None']].map(([k, v]) => (
+                {[['Capacity', `${selected.cap || 0} persons`], ['Status', selected.status], ['Floor', selected.floor], ['Order ID', (selected as any).orderId ?? 'None']].map(([k, v]) => (
                   <div key={k} style={{ padding: 12, background: '#F4F6FB', borderRadius: 8 }}>
                     <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600 }}>{k}</div>
                     <div style={{ fontWeight: 700 }}>{v}</div>
@@ -101,8 +101,8 @@ function ManagerTables() {
               )}
 
               <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                <button className="btn btn-outline btn-sm" style={{ flex: 1 }} onClick={() => { setTables(prev => prev.map(t => t.id === selected.id ? { ...t, status: 'free' as TableStatus } : t)); setSelected(null); }}>Mark as Free</button>
-                <button className="btn btn-ghost btn-sm" style={{ flex: 1, color: '#FF3B30' }} onClick={() => { setTables(prev => prev.filter(t => t.id !== selected.id)); setSelected(null); }}>Remove Table</button>
+                <button className="btn btn-outline btn-sm" style={{ flex: 1 }} onClick={() => { updateItem('tables', selected.id, { status: 'free' }); setSelected(null); }}>Mark as Free</button>
+                <button className="btn btn-ghost btn-sm" style={{ flex: 1, color: '#FF3B30' }} onClick={() => { deleteItem('tables', selected.id); setSelected(null); }}>Remove Table</button>
               </div>
             </div>
           </div>

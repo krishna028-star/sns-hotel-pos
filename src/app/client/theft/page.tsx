@@ -1,12 +1,14 @@
 'use client';
 import React from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { THEFT_REPORTS, formatCurrency } from '@/lib/mockData';
+import { formatCurrency } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 
 function ClientTheft() {
-  const totalLoss = THEFT_REPORTS.reduce((a, r) => a + r.loss, 0);
-  const verified = THEFT_REPORTS.filter(r => r.status === 'verified');
-  const pending = THEFT_REPORTS.filter(r => r.status === 'submitted');
+  const { theftReports } = useData();
+  const totalLoss = theftReports.reduce((a: number, r: any) => a + (r.loss || 0), 0);
+  const verified = theftReports.filter((r: any) => r.status === 'verified');
+  const pending = theftReports.filter((r: any) => r.status === 'submitted');
 
   return (
     <DashboardLayout title="Chain Theft Reports">
@@ -20,7 +22,7 @@ function ClientTheft() {
 
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>
         {[
-          { label: 'Total Reports (MTD)', value: THEFT_REPORTS.length, color: '#FF8A34', bg: '#fff3e8' },
+          { label: 'Total Reports (MTD)', value: theftReports.length, color: '#FF8A34', bg: '#fff3e8' },
           { label: 'Verified Thefts', value: verified.length, color: '#FF3B30', bg: '#fff0ef' },
           { label: 'Pending Review', value: pending.length, color: '#2E5AFF', bg: '#e8edff' },
           { label: 'Total Loss', value: formatCurrency(totalLoss), color: '#9B59B6', bg: '#f5f0ff' },
@@ -45,7 +47,7 @@ function ClientTheft() {
           <table className="data-table">
             <thead><tr><th>Date</th><th>Hotel</th><th>Ingredient</th><th>Quantity</th><th>Loss</th><th>Notes</th><th>Status</th></tr></thead>
             <tbody>
-              {THEFT_REPORTS.map(r => (
+              {theftReports.map((r: any) => (
                 <tr key={r.id}>
                   <td style={{ fontSize: 12 }}>{r.date}</td>
                   <td style={{ fontWeight: 600 }}>{r.hotel}</td>

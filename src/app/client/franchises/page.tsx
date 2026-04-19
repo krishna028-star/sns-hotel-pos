@@ -1,9 +1,12 @@
 'use client';
 import React from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { FRANCHISES, HOTELS, formatCurrency } from '@/lib/mockData';
+import { FRANCHISES, formatCurrency } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 
 function ClientFranchises() {
+  const { hotels, activeOrders } = useData();
+
   return (
     <DashboardLayout title="Franchise Management">
       <div className="page-header">
@@ -17,9 +20,9 @@ function ClientFranchises() {
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 24 }}>
         {[
           { label: 'Total Franchises', value: FRANCHISES.length, color: '#FF8A34', bg: '#fff3e8' },
-          { label: 'Total Hotels', value: HOTELS.length, color: '#2E5AFF', bg: '#e8edff' },
+          { label: 'Total Hotels', value: hotels.length, color: '#2E5AFF', bg: '#e8edff' },
           { label: 'Total Revenue', value: formatCurrency(FRANCHISES.reduce((a,f)=>a+f.revenue,0)), color: '#1ABC9C', bg: '#e6faf7' },
-          { label: 'Total Orders', value: '4,220', color: '#9B59B6', bg: '#f5f0ff' },
+          { label: 'Total Orders', value: String(14820 + activeOrders.length), color: '#9B59B6', bg: '#f5f0ff' },
         ].map(m => (
           <div className="metric-card" key={m.label}>
             <div className="metric-label">{m.label}</div>
@@ -55,13 +58,13 @@ function ClientFranchises() {
           <table className="data-table">
             <thead><tr><th>Hotel</th><th>Manager</th><th>Tables</th><th>Revenue</th><th>Status</th></tr></thead>
             <tbody>
-              {HOTELS.map(h => (
+              {hotels.map((h: any) => (
                 <tr key={h.id}>
                   <td><strong>{h.name}</strong></td>
-                  <td>{h.manager}</td>
-                  <td>{h.tables}</td>
-                  <td><strong style={{ color: '#1ABC9C' }}>{formatCurrency(h.revenue)}</strong></td>
-                  <td><span className="badge badge-green">{h.status}</span></td>
+                  <td>{h.manager || 'Unassigned'}</td>
+                  <td>{h.tables?.toLocaleString() || h.tables || '0'}</td>
+                  <td><strong style={{ color: '#1ABC9C' }}>{formatCurrency(h.revenue || 0)}</strong></td>
+                  <td><span className="badge badge-green">{h.status || 'Active'}</span></td>
                 </tr>
               ))}
             </tbody>

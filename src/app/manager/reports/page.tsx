@@ -2,9 +2,16 @@
 import React from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { SALES_TREND, TOP_ITEMS, HOURLY_SALES, formatCurrency } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 function ManagerReports() {
+  const { activeOrders } = useData();
+
+  const realOrders = 385 + activeOrders.length;
+  const realTotal = 140000 + activeOrders.reduce((a: number, b: any) => a + (b.total || 0), 0);
+  const realAvg = Math.round(realTotal / realOrders);
+
   return (
     <DashboardLayout title="Reports & Export">
       <div className="page-header">
@@ -26,9 +33,9 @@ function ManagerReports() {
 
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>
         {[
-          { label: "Today's Revenue", value: '₹1,40,000', trend: '↑ 18%', icon: '💰', color: '#2E5AFF', bg: '#e8edff' },
-          { label: 'Total Orders', value: '385', trend: '↑ 10%', icon: '📋', color: '#00C48C', bg: '#e8fdf7' },
-          { label: 'Avg. Bill Value', value: '₹364', trend: '↑ 7%', icon: '🧾', color: '#FF8A34', bg: '#fff3e8' },
+          { label: "Today's Revenue", value: formatCurrency(realTotal), trend: '↑ 18%', icon: '💰', color: '#2E5AFF', bg: '#e8edff' },
+          { label: 'Total Orders', value: realOrders, trend: '↑ 10%', icon: '📋', color: '#00C48C', bg: '#e8fdf7' },
+          { label: 'Avg. Bill Value', value: formatCurrency(realAvg), trend: '↑ 7%', icon: '🧾', color: '#FF8A34', bg: '#fff3e8' },
           { label: 'Table Turnover', value: '3.2x', trend: 'Per table today', icon: '🔄', color: '#9B59B6', bg: '#f5f0ff' },
         ].map(m => (
           <div className="metric-card" key={m.label}>

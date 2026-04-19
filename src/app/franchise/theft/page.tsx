@@ -1,16 +1,17 @@
 'use client';
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { THEFT_REPORTS } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 
 function FranchiseTheft() {
-  const [reports, setReports] = useState(THEFT_REPORTS);
-  const [selected, setSelected] = useState<(typeof THEFT_REPORTS)[0] | null>(null);
+  const { theftReports, updateItem } = useData();
+  const [selected, setSelected] = useState<any | null>(null);
   const [note, setNote] = useState('');
 
-  const escalate = (id: number) => {
-    setReports(prev => prev.map(r => r.id === id ? { ...r, status: 'verified' } : r));
+  const escalate = (id: string | number) => {
+    updateItem('theftReports', id, { status: 'verified', notes: note });
     setSelected(null);
+    setNote('');
   };
 
   return (
@@ -28,13 +29,13 @@ function FranchiseTheft() {
           <table className="data-table">
             <thead><tr><th>Date</th><th>Hotel</th><th>Ingredient</th><th>Qty Lost</th><th>Est. Loss</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody>
-              {reports.map(r => (
+              {theftReports.map((r: any) => (
                 <tr key={r.id}>
                   <td style={{ fontSize: 12 }}>{r.date}</td>
                   <td>{r.hotel}</td>
                   <td><strong>{r.ingredient}</strong></td>
                   <td>{r.qty} {r.unit}</td>
-                  <td style={{ color: '#FF3B30', fontWeight: 700 }}>₹{r.loss.toLocaleString()}</td>
+                  <td style={{ color: '#FF3B30', fontWeight: 700 }}>₹{Number(r.loss).toLocaleString()}</td>
                   <td>
                     <span className={`badge ${r.status === 'verified' ? 'badge-red' : r.status === 'submitted' ? 'badge-orange' : 'badge-gray'}`}>{r.status}</span>
                   </td>
@@ -60,8 +61,8 @@ function FranchiseTheft() {
             </div>
             <div className="modal-body">
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-                {[['Hotel', selected.hotel], ['Ingredient', selected.ingredient], ['Quantity Lost', `${selected.qty} ${selected.unit}`], ['Estimated Loss', `₹${selected.loss.toLocaleString()}`], ['Date', selected.date], ['Status', selected.status]].map(([k, v]) => (
-                  <div key={k} style={{ padding: 12, background: '#F4F6FB', borderRadius: 8 }}>
+                {[['Hotel', selected.hotel], ['Ingredient', selected.ingredient], ['Quantity Lost', `${selected.qty} ${selected.unit}`], ['Estimated Loss', `₹${Number(selected.loss).toLocaleString()}`], ['Date', selected.date], ['Status', selected.status]].map(([k, v]) => (
+                  <div key={k as string} style={{ padding: 12, background: '#F4F6FB', borderRadius: 8 }}>
                     <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600 }}>{k}</div>
                     <div style={{ fontWeight: 700, marginTop: 2 }}>{v}</div>
                   </div>

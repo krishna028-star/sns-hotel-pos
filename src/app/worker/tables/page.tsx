@@ -1,18 +1,18 @@
 'use client';
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { TABLES } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 
 function WorkerTables() {
-  const [tables, setTables] = useState(TABLES);
+  const { tables } = useData();
   const [filter, setFilter] = useState<'all' | 'free' | 'occupied' | 'reserved'>('all');
 
-  const floors = [...new Set(tables.map(t => t.floor))];
-  const filtered = tables.filter(t => filter === 'all' || t.status === filter);
+  const floors = [...new Set(tables.map((t: any) => t.floor))];
+  const filtered = tables.filter((t: any) => filter === 'all' || t.status === filter);
 
-  const free = tables.filter(t => t.status === 'free').length;
-  const occupied = tables.filter(t => t.status === 'occupied').length;
-  const reserved = tables.filter(t => t.status === 'reserved').length;
+  const free = tables.filter((t: any) => t.status === 'free').length;
+  const occupied = tables.filter((t: any) => t.status === 'occupied').length;
+  const reserved = tables.filter((t: any) => t.status === 'reserved').length;
 
   return (
     <DashboardLayout title="Floor Plan">
@@ -51,7 +51,7 @@ function WorkerTables() {
           <div key={floor} className="card" style={{ marginBottom: 16 }}>
             <div className="card-header"><div className="card-title">{floor}</div></div>
             <div className="table-map">
-              {floorTables.map(t => (
+              {floorTables.map((t: any) => (
                 <div key={t.id} className={`table-box ${t.status}`} title={`Table ${t.number} — ${t.status}`}>
                   <div className="table-num">{t.number}</div>
                   <div className="table-status">{t.status}</div>

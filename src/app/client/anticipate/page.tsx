@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, AreaChart, Area } from 'recharts';
+import { useData } from '@/lib/DataContext';
 
 const COMBINED_TREND = [
   { date: 'Mar 25', actual: 420000, predicted: null },
@@ -47,6 +48,7 @@ const severityColor: Record<string, string> = { high: '#FF3B30', medium: '#FF8A3
 const severityBg: Record<string, string> = { high: '#fff0ef', medium: '#fff3e8', info: '#e8edff', critical: '#fff0ef', warning: '#fff3e8' };
 
 export default function ClientAnticipatePage() {
+  const { ingredients } = useData();
   const [horizon, setHorizon] = useState(7);
   const [recs, setRecs] = useState(RECOMMENDATIONS);
 
@@ -87,7 +89,7 @@ export default function ClientAnticipatePage() {
           <div className="metric-card">
             <div className="metric-icon" style={{ background: '#fff0ef', color: '#FF3B30' }}>📦</div>
             <div className="metric-label">Critical Stock Alerts</div>
-            <div className="metric-value" style={{ color: '#FF3B30' }}>{LOW_STOCK_PREDICTIONS.filter(s => s.severity === 'critical').length}</div>
+            <div className="metric-value" style={{ color: '#FF3B30' }}>{ingredients.filter((i: any) => i.status === 'critical').length}</div>
             <div className="metric-trend" style={{ color: '#FF3B30' }}>Items running out &lt;3 days</div>
           </div>
           <div className="metric-card">

@@ -1,10 +1,15 @@
 'use client';
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
+import { useData } from '@/lib/DataContext';
 
 function Reconciliation() {
+  const { activeOrders } = useData();
   const [actualCash, setActualCash] = useState('');
-  const expectedCash = 18200;
+  
+  const paidCashOrders = activeOrders.filter((o: any) => o.status === 'paid');
+  const expectedCash = paidCashOrders.reduce((sum: number, o: any) => sum + (o.total || 0), 0);
+
   const diff = parseFloat(actualCash || '0') - expectedCash;
   const [submitted, setSubmitted] = useState(false);
 
@@ -33,9 +38,9 @@ function Reconciliation() {
             <div className="card-body">
               {[
                 { label: 'Expected Cash (from payments)', value: `₹${expectedCash.toLocaleString()}`, highlight: true },
-                { label: 'Cash Payments (42)', value: '₹18,200', highlight: false },
-                { label: 'Digital Payments', value: '₹42,800', highlight: false },
-                { label: 'Total Revenue', value: '₹61,000', highlight: false },
+                { label: `Cash Payments (${paidCashOrders.length})`, value: `₹${expectedCash.toLocaleString()}`, highlight: false },
+                { label: 'Digital Payments', value: '₹0', highlight: false },
+                { label: 'Total Revenue', value: `₹${expectedCash.toLocaleString()}`, highlight: false },
                 { label: 'Refunds Processed', value: '₹0', highlight: false },
               ].map(s => (
                 <div key={s.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #F1F5F9' }}>

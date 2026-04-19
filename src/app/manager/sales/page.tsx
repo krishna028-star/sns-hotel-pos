@@ -1,10 +1,18 @@
 'use client';
 import React from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { SALES_TREND, TOP_ITEMS, TABLES, formatCurrency } from '@/lib/mockData';
+import { SALES_TREND, TOP_ITEMS, formatCurrency } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 function ManagerSales() {
+  const { activeOrders } = useData();
+
+  const activeSum = activeOrders.reduce((a: number, o: any) => a + (o.total || 0), 0);
+  const totalRevenue = 738500 + activeSum;
+  const totalOrdersCount = 1847 + activeOrders.length;
+  const avgBill = Math.round(totalRevenue / totalOrdersCount);
+
   return (
     <DashboardLayout title="Sales Report">
       <div className="page-header">
@@ -19,9 +27,9 @@ function ManagerSales() {
 
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>
         {[
-          { label: 'Revenue (Week)', value: '₹7,38,500', trend: '↑ 12%', color: '#2E5AFF', bg: '#e8edff' },
-          { label: 'Total Orders', value: '1,847', trend: '↑ 8%', color: '#00C48C', bg: '#e8fdf7' },
-          { label: 'Avg. Bill', value: '₹400', trend: '↑ 4%', color: '#FF8A34', bg: '#fff3e8' },
+          { label: 'Revenue (Week)', value: formatCurrency(totalRevenue), trend: '↑ 12%', color: '#2E5AFF', bg: '#e8edff' },
+          { label: 'Total Orders', value: totalOrdersCount.toLocaleString(), trend: '↑ 8%', color: '#00C48C', bg: '#e8fdf7' },
+          { label: 'Avg. Bill', value: formatCurrency(avgBill), trend: '↑ 4%', color: '#FF8A34', bg: '#fff3e8' },
           { label: 'Table Turns/Day', value: '3.8×', trend: 'Efficiency', color: '#9B59B6', bg: '#f5f0ff' },
         ].map(m => (
           <div className="metric-card" key={m.label}>

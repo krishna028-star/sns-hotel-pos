@@ -2,12 +2,14 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
-import { INGREDIENTS, formatCurrency } from '@/lib/mockData';
+import { formatCurrency } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 
 function LowStockAlerts() {
   const router = useRouter();
-  const critical = INGREDIENTS.filter(i => i.status === 'critical');
-  const low = INGREDIENTS.filter(i => i.status === 'low');
+  const { ingredients } = useData();
+  const critical = ingredients.filter((i: any) => i.status === 'critical');
+  const low = ingredients.filter((i: any) => i.status === 'low');
 
   return (
     <DashboardLayout title="Low Stock Alerts">
@@ -26,7 +28,7 @@ function LowStockAlerts() {
         <>
           <div style={{ fontWeight: 700, color: '#FF3B30', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>🔴 Critical — Order Immediately</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
-            {critical.map(i => (
+            {critical.map((i: any) => (
               <div key={i.id} className="card" style={{ border: '2px solid #FF3B30' }}>
                 <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
                   <div style={{ flex: 1 }}>
@@ -58,7 +60,7 @@ function LowStockAlerts() {
         <>
           <div style={{ fontWeight: 700, color: '#FF8A34', marginBottom: 10 }}>🟡 Low Stock — Reorder Soon</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {low.map(i => (
+            {low.map((i: any) => (
               <div key={i.id} className="card" style={{ border: '2px solid #FF8A34' }}>
                 <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
                   <div style={{ flex: 1 }}>

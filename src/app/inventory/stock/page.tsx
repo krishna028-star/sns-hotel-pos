@@ -1,22 +1,23 @@
 'use client';
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { INGREDIENTS, formatCurrency } from '@/lib/mockData';
+import { formatCurrency } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 
 function StockOverview() {
-  const [ingredients, setIngredients] = useState(INGREDIENTS);
+  const { ingredients, addItem, updateItem, deleteItem } = useData();
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showModal, setShowModal] = useState(false);
-  const [editItem, setEditItem] = useState<null | typeof INGREDIENTS[0]>(null);
-  const [adjModal, setAdjModal] = useState<typeof INGREDIENTS[0] | null>(null);
+  const [editItem, setEditItem] = useState<any | null>(null);
+  const [adjModal, setAdjModal] = useState<any | null>(null);
   const [adjQty, setAdjQty] = useState('');
   const [adjReason, setAdjReason] = useState('wastage');
 
-  const categories = ['All', ...new Set(INGREDIENTS.map(i => i.category))];
+  const categories = ['All', ...new Set(ingredients.map((i: any) => i.category))];
 
-  const filtered = ingredients.filter(i =>
+  const filtered = ingredients.filter((i: any) =>
     (categoryFilter === 'All' || i.category === categoryFilter) &&
     (statusFilter === 'all' || i.status === statusFilter) &&
     i.name.toLowerCase().includes(search.toLowerCase())
@@ -30,7 +31,7 @@ function StockOverview() {
     if (!adjItem || !adjQty) return;
     const delta = parseFloat(adjQty);
     if (isNaN(delta)) return;
-    setIngredients(prev => prev.map(i => i.id === adjItem.id ? { ...i, stock: Math.max(0, i.stock + delta) } : i));
+    updateItem('ingredients', adjItem.id, { stock: Math.max(0, (adjItem.stock || 0) + delta) });
     setAdjModal(null);
     setAdjQty('');
   };
@@ -70,8 +71,8 @@ function StockOverview() {
               <tr><th>Ingredient</th><th>Category</th><th>Current Stock</th><th>Reorder Level</th><th>Stock Bar</th><th>Unit Cost</th><th>Value</th><th>Status</th><th>Actions</th></tr>
             </thead>
             <tbody>
-              {filtered.map(i => {
-                const pct = Math.min(100, (i.stock / (i.reorder * 2)) * 100);
+              {filtered.map((i: any) => {
+                const pct = Math.min(100, ((i.stock || 0) / ((i.reorder || 1) * 2)) * 100);
                 return (
                   <tr key={i.id}>
                     <td><strong>{i.name}</strong></td>
@@ -93,7 +94,7 @@ function StockOverview() {
                     <td>
                       <div style={{ display: 'flex', gap: 4 }}>
                         <button className="btn btn-outline btn-sm" onClick={() => setAdjModal(i)}>Adjust</button>
-                        <button className="btn btn-ghost btn-sm" style={{ color: '#FF3B30' }} onClick={() => setIngredients(prev => prev.filter(x => x.id !== i.id))}>✕</button>
+                        <button className="btn btn-ghost btn-sm" style={{ color: '#FF3B30' }} onClick={() => deleteItem('ingredients', i.id)}>✕</button>
                       </div>
                     </td>
                   </tr>

@@ -7,7 +7,7 @@ import { useData } from '@/lib/DataContext';
 type TableStatus = 'free' | 'occupied' | 'reserved';
 
 function WorkerDash() {
-  const { tables: dataTables, updateItem, menuItems: allMenuItems } = useData();
+  const { tables: dataTables, updateItem, addItem, menuItems: allMenuItems } = useData();
   const [tables, setTables] = useState(dataTables);
   const [selectedTable, setSelectedTable] = useState<any | null>(null);
   const [orderItems, setOrderItems] = useState<{ id: number; name: string; price: number; qty: number }[]>([]);
@@ -34,7 +34,30 @@ function WorkerDash() {
 
   const sendKOT = () => {
     updateItem('tables', selectedTable?.id, { status: 'occupied' });
-    // Also should technically add to activeOrders/pendingKots
+    
+    const newOrderId = `ORD-${Math.floor(100 + Math.random() * 900)}`;
+    const newOrder = {
+      id: newOrderId,
+      tableNum: selectedTable?.number,
+      worker: 'Vijay Kumar', // Hardcoded for worker demo
+      status: 'kot_sent',
+      items: orderItems,
+      total: total,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    addItem('activeOrders', newOrder);
+
+    const newKot = {
+      id: `KOT-${Math.floor(200 + Math.random() * 800)}`,
+      tableNum: selectedTable?.number,
+      orderId: newOrderId,
+      time: newOrder.time,
+      elapsed: '0 min',
+      status: 'pending',
+      items: orderItems
+    };
+    addItem('pendingKots', newKot);
+
     setStep('table');
     setSelectedTable(null);
     setOrderItems([]);

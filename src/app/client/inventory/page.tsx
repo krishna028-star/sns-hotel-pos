@@ -1,13 +1,16 @@
 'use client';
 import React from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { INGREDIENTS, THEFT_REPORTS, PURCHASE_ORDERS, formatCurrency } from '@/lib/mockData';
+import { formatCurrency } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 
 function ClientInventory() {
-  const totalValue = INGREDIENTS.reduce((a, i) => a + i.stock * i.unitCost, 0);
-  const critical = INGREDIENTS.filter(i => i.status === 'critical').length;
-  const totalTheft = THEFT_REPORTS.reduce((a, r) => a + r.loss, 0);
-  const pendingPOs = PURCHASE_ORDERS.filter(p => p.status === 'pending_approval').length;
+  const { ingredients, theftReports, purchaseOrders } = useData();
+
+  const totalValue = ingredients.reduce((a: number, i: any) => a + (i.stock || 0) * (i.unitCost || 0), 0);
+  const critical = ingredients.filter((i: any) => i.status === 'critical').length;
+  const totalTheft = theftReports.reduce((a: number, r: any) => a + (r.loss || 0), 0);
+  const pendingPOs = purchaseOrders.filter((p: any) => p.status === 'pending_approval' || p.status === 'pending').length;
 
   return (
     <DashboardLayout title="Chain Inventory Overview">
@@ -70,7 +73,7 @@ function ClientInventory() {
           <table className="data-table">
             <thead><tr><th>Date</th><th>Hotel</th><th>Item</th><th>Loss</th><th>Status</th></tr></thead>
             <tbody>
-              {THEFT_REPORTS.map(r => (
+              {theftReports.map((r: any) => (
                 <tr key={r.id}>
                   <td style={{ fontSize: 12 }}>{r.date}</td>
                   <td>{r.hotel}</td>

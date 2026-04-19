@@ -1,15 +1,22 @@
 'use client';
 import React from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { FRANCHISE_SALES, TABLES, formatCurrency } from '@/lib/mockData';
+import { formatCurrency } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 function FranchiseOccupancy() {
-  const hotelData = [
-    { name: 'SNS Beach Resort', tables: 12, occupied: 5, capacity: 72, guests: 34 },
-    { name: 'SNS Central', tables: 20, occupied: 14, capacity: 140, guests: 98 },
-    { name: 'SNS Mountain View', tables: 15, occupied: 8, capacity: 90, guests: 52 },
-  ];
+  const { tables } = useData();
+
+  const hotelMap = tables.reduce((acc: any, t: any) => {
+    const name = t.hotel || 'Unassigned';
+    if (!acc[name]) acc[name] = { name, tables: 0, occupied: 0, capacity: 0, guests: 0 };
+    acc[name].tables += 1;
+    acc[name].capacity += t.cap || 0;
+    if (t.status === 'occupied') acc[name].occupied += 1;
+    return acc;
+  }, {});
+  const hotelData = Object.values(hotelMap);
 
   return (
     <DashboardLayout title="Occupancy Overview">
@@ -19,7 +26,7 @@ function FranchiseOccupancy() {
           <div className="page-header-sub">Real-time table occupancy across all franchise hotels</div>
         </div>
         <div className="stat-pill">
-          <strong style={{ color: '#FF8A34' }}>{hotelData.reduce((a,h)=>a+h.occupied,0)}</strong>/{hotelData.reduce((a,h)=>a+h.tables,0)} Tables Occupied
+          <strong style={{ color: '#FF8A34' }}>{hotelData.reduce((a: number,h: any)=>a+h.occupied,0)}</strong>/{hotelData.reduce((a: number,h: any)=>a+h.tables,0)} Tables Occupied
         </div>
       </div>
 
@@ -32,7 +39,7 @@ function FranchiseOccupancy() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
                   <div>
                     <div style={{ fontWeight: 800, fontSize: 15 }}>{h.name}</div>
-                    <div style={{ fontSize: 12, color: '#64748B' }}>{h.occupied}/{h.tables} tables · {h.guests} guests</div>
+                    <div style={{ fontSize: 12, color: '#64748B' }}>{h.occupied}/{h.tables} tables · Cap: {h.capacity}</div>
                   </div>
                   <div style={{ fontSize: 26, fontWeight: 900, color: pct > 70 ? '#FF3B30' : pct > 40 ? '#FF8A34' : '#00C48C' }}>{pct}%</div>
                 </div>
@@ -52,7 +59,7 @@ function FranchiseOccupancy() {
       <div className="chart-card">
         <div className="chart-title">📊 Table Occupancy by Hotel</div>
         <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={hotelData.map(h => ({ name: h.name.replace('SNS ', ''), occupied: h.occupied, free: h.tables - h.occupied }))}>
+          <BarChart data={hotelData.map((h: any) => ({ name: h.name.replace('SNS ', ''), occupied: h.occupied, free: h.tables - h.occupied }))}>
             <XAxis dataKey="name" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
             <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} />

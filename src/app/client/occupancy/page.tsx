@@ -44,16 +44,19 @@ const statusColor: Record<string, string> = { free: '#00C48C', occupied: '#FF3B3
 const statusLabel: Record<string, string> = { free: 'Free', occupied: 'Occupied', reserved: 'Reserved', out_of_service: 'OOS' };
 const bookingStatusColor: Record<string, string> = { pending: '#FF8A34', confirmed: '#00C48C', expired: '#FF3B30', cancelled: '#94A3B8' };
 
+import { useData } from '@/lib/DataContext';
+
 export default function ClientOccupancyPage() {
+  const { tables, bookings } = useData();
   const [selectedFloor, setSelectedFloor] = useState('All');
   const floors = ['All', 'Ground', '1st Floor', 'Terrace'];
-  const filtered = selectedFloor === 'All' ? FLOOR_TABLES : FLOOR_TABLES.filter(t => t.floor === selectedFloor);
+  const filtered = selectedFloor === 'All' ? tables : tables.filter((t: any) => t.floor === selectedFloor);
 
-  const free = FLOOR_TABLES.filter(t => t.status === 'free').length;
-  const occupied = FLOOR_TABLES.filter(t => t.status === 'occupied').length;
-  const reserved = FLOOR_TABLES.filter(t => t.status === 'reserved').length;
-  const totalCap = FLOOR_TABLES.reduce((sum, t) => sum + t.cap, 0);
-  const occupancyRate = Math.round((occupied / FLOOR_TABLES.length) * 100);
+  const free = tables.filter((t: any) => t.status === 'free').length;
+  const occupied = tables.filter((t: any) => t.status === 'occupied').length;
+  const reserved = tables.filter((t: any) => t.status === 'reserved').length;
+  const totalCap = tables.reduce((sum: number, t: any) => sum + (t.cap || 0), 0);
+  const occupancyRate = tables.length ? Math.round((occupied / tables.length) * 100) : 0;
 
   return (
     
@@ -61,12 +64,12 @@ export default function ClientOccupancyPage() {
         {/* Metrics */}
         <div className="metrics-grid" style={{ marginBottom: 24 }}>
           {[
-            { label: 'Occupancy Rate (Chain)', value: `${occupancyRate}%`, sub: `${occupied} of ${FLOOR_TABLES.length} tables`, color: '#2E5AFF', icon: '📊' },
+            { label: 'Occupancy Rate (Chain)', value: `${occupancyRate}%`, sub: `${occupied} of ${tables.length} tables`, color: '#2E5AFF', icon: '📊' },
             { label: 'Free Tables', value: free, sub: 'Available now', color: '#00C48C', icon: '🪑' },
             { label: 'Occupied Tables', value: occupied, sub: 'Currently serving', color: '#FF3B30', icon: '🍽️' },
             { label: 'Reserved Tables', value: reserved, sub: 'Pre-booked', color: '#FF8A34', icon: '📅' },
             { label: 'Total Covers', value: totalCap, sub: 'Across all hotels', color: '#9B59B6', icon: '👥' },
-            { label: "Today's Bookings", value: BOOKINGS_TODAY.length, sub: `${BOOKINGS_TODAY.filter(b => b.status === 'confirmed').length} confirmed`, color: '#F39C12', icon: '🗓️' },
+            { label: "Today's Bookings", value: bookings.length, sub: `${bookings.filter((b: any) => b.status === 'confirmed').length} confirmed`, color: '#F39C12', icon: '🗓️' },
           ].map(m => (
             <div className="metric-card" key={m.label}>
               <div className="metric-icon" style={{ background: m.color + '18', color: m.color }}>{m.icon}</div>
@@ -129,16 +132,16 @@ export default function ClientOccupancyPage() {
             ))}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: 10 }}>
-            {filtered.map(t => (
+            {filtered.map((t: any) => (
               <div key={t.id} style={{
-                borderRadius: 10, border: `2px solid ${statusColor[t.status]}`, background: statusColor[t.status] + '18',
+                borderRadius: 10, border: `2px solid ${statusColor[t.status] || '#94A3B8'}`, background: (statusColor[t.status] || '#94A3B8') + '18',
                 padding: '12px 8px', textAlign: 'center', cursor: 'pointer', transition: 'transform 0.15s',
               }}
                 onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.05)')}
                 onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}>
-                <div style={{ fontSize: 11, fontWeight: 800, color: statusColor[t.status] }}>T{t.num}</div>
+                <div style={{ fontSize: 11, fontWeight: 800, color: statusColor[t.status] || '#94A3B8' }}>T{t.num || t.id}</div>
                 <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>👥 {t.cap}</div>
-                <div style={{ fontSize: 9, fontWeight: 600, color: statusColor[t.status], marginTop: 3, textTransform: 'uppercase', letterSpacing: 0.5 }}>{statusLabel[t.status]}</div>
+                <div style={{ fontSize: 9, fontWeight: 600, color: statusColor[t.status] || '#94A3B8', marginTop: 3, textTransform: 'uppercase', letterSpacing: 0.5 }}>{statusLabel[t.status] || t.status}</div>
               </div>
             ))}
           </div>
@@ -148,20 +151,20 @@ export default function ClientOccupancyPage() {
         <div className="card" style={{ marginTop: 20 }}>
           <div className="card-header">
             <div className="card-title">📅 Today's Bookings (Chain-wide)</div>
-            <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{BOOKINGS_TODAY.length} bookings</span>
+            <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{bookings.length} bookings</span>
           </div>
           <div className="table-wrap">
             <table className="data-table">
               <thead><tr><th>Booking ID</th><th>Customer</th><th>Hotel</th><th>Table</th><th>Time</th><th>Guests</th><th>Status</th></tr></thead>
               <tbody>
-                {BOOKINGS_TODAY.map(b => (
+                {bookings.map((b: any) => (
                   <tr key={b.id}>
                     <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{b.id}</td>
-                    <td><strong>{b.name}</strong></td>
-                    <td style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{b.hotel}</td>
-                    <td>Table {b.table}</td>
+                    <td><strong>{b.name || b.customerName}</strong></td>
+                    <td style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{b.hotel || 'Chain Default'}</td>
+                    <td>Table {b.table || b.tableId}</td>
                     <td>{b.time}</td>
-                    <td>{b.guests}</td>
+                    <td>{b.guests || 2}</td>
                     <td><span className={`badge ${b.status === 'confirmed' ? 'badge-green' : b.status === 'pending' ? 'badge-orange' : 'badge-red'}`}>{b.status}</span></td>
                   </tr>
                 ))}

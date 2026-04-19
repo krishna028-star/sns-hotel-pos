@@ -6,7 +6,6 @@ import { formatCurrency } from '@/lib/mockData';
 const statusColor: Record<string, string> = { ready: '#00C48C', cooking: '#FF8A34', kot_sent: '#2E5AFF', bill_requested: '#9B59B6', pending: '#94A3B8' };
 const statusEmoji: Record<string, string> = { ready: '✅', cooking: '🔥', kot_sent: '📤', bill_requested: '🧾', pending: '⏳' };
 
-type Order = typeof ACTIVE_ORDERS[0];
 
 import { useData } from '@/lib/DataContext';
 

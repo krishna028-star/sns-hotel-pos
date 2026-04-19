@@ -1,7 +1,8 @@
 'use client';
 import React from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { INGREDIENTS, formatCurrency } from '@/lib/mockData';
+import { formatCurrency } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 const movements = [
@@ -15,9 +16,12 @@ const movements = [
 
 const typeColor: Record<string, string> = { Used: '#FF8A34', Received: '#00C48C', Adjustment: '#9B59B6' };
 const typeBadge: Record<string, string> = { Used: 'badge-orange', Received: 'badge-green', Adjustment: 'badge-purple' };
-const usageData = INGREDIENTS.slice(0, 6).map(i => ({ name: i.name, used: Math.floor(Math.random() * 15 + 2) }));
+
 
 function StockMovements() {
+  const { ingredients } = useData();
+  const usageData = ingredients.slice(0, 6).map((i: any) => ({ name: i.name, used: Math.floor(Math.random() * 15 + 2) }));
+
   return (
     <DashboardLayout title="Stock Movements">
       <div className="page-header">

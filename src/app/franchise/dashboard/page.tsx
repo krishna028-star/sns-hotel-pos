@@ -1,11 +1,14 @@
 'use client';
 import React from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { SALES_TREND, FRANCHISE_SALES, HOTELS, THEFT_REPORTS, formatCurrency } from '@/lib/mockData';
+import { SALES_TREND, FRANCHISE_SALES, formatCurrency } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import Link from 'next/link';
 
 function FranchiseDash() {
+  const { hotels, activeOrders, theftReports } = useData();
+
   return (
     <DashboardLayout title="Franchise Head Dashboard">
       {/* Hero */}
@@ -13,7 +16,7 @@ function FranchiseDash() {
         <div style={{ fontSize: 40 }}>🏩</div>
         <div>
           <div style={{ color: '#fff', fontSize: 20, fontWeight: 800 }}>North Region — Franchise Overview</div>
-          <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 4 }}>3 Hotels · Real-time monitoring</div>
+          <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 4 }}>{hotels.length} Hotels · Real-time monitoring</div>
         </div>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
           <Link href="/franchise/hotels"><button className="btn btn-sm" style={{ background: '#fff', color: '#FF8A34' }}>🏨 Hotels</button></Link>
@@ -25,9 +28,9 @@ function FranchiseDash() {
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>
         {[
           { label: 'Franchise Revenue (MTD)', value: '₹4.2L', trend: '↑ 11%', icon: '💰', color: '#FF8A34', bg: '#fff3e8' },
-          { label: 'Total Orders', value: '1,120', trend: '↑ 7%', icon: '📋', color: '#2E5AFF', bg: '#e8edff' },
+          { label: 'Total Orders', value: String(1120 + activeOrders.length), trend: '↑ 7%', icon: '📋', color: '#2E5AFF', bg: '#e8edff' },
           { label: 'Pending Approvals', value: '2', trend: 'Action needed', icon: '✅', color: '#9B59B6', bg: '#f5f0ff' },
-          { label: 'Theft Reports', value: '1', trend: 'Under review', icon: '🚨', color: '#FF3B30', bg: '#fff0ef' },
+          { label: 'Theft Reports', value: String(theftReports.length), trend: 'Under review', icon: '🚨', color: '#FF3B30', bg: '#fff0ef' },
         ].map(m => (
           <div className="metric-card" key={m.label}>
             <div className="metric-icon" style={{ background: m.bg, color: m.color }}>{m.icon}</div>
@@ -55,7 +58,7 @@ function FranchiseDash() {
         <div className="chart-card">
           <div className="chart-title">🏨 Revenue by Hotel</div>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={HOTELS}>
+            <BarChart data={hotels}>
               <XAxis dataKey="name" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
               <Tooltip formatter={(v: unknown) => [formatCurrency(Number(v)), 'Revenue']} contentStyle={{ borderRadius: 8, fontSize: 12 }} />
@@ -72,12 +75,12 @@ function FranchiseDash() {
           <table className="data-table">
             <thead><tr><th>Hotel</th><th>Manager</th><th>Tables</th><th>Revenue (MTD)</th><th>Status</th><th></th></tr></thead>
             <tbody>
-              {HOTELS.map(h => (
+              {hotels.map((h: any) => (
                 <tr key={h.id}>
                   <td><strong>{h.name}</strong></td>
-                  <td style={{ fontSize: 12 }}>{h.manager}</td>
+                  <td style={{ fontSize: 12 }}>{h.manager || 'Unassigned'}</td>
                   <td>{h.tables}</td>
-                  <td><strong style={{ color: '#FF8A34' }}>{formatCurrency(h.revenue)}</strong></td>
+                  <td><strong style={{ color: '#FF8A34' }}>{formatCurrency(h.revenue || 0)}</strong></td>
                   <td><span className="badge badge-green">Active</span></td>
                   <td><button className="btn btn-ghost btn-sm">View →</button></td>
                 </tr>
@@ -94,11 +97,11 @@ function FranchiseDash() {
           <table className="data-table">
             <thead><tr><th>Hotel</th><th>Ingredient</th><th>Loss</th><th>Status</th></tr></thead>
             <tbody>
-              {THEFT_REPORTS.map(r => (
+              {theftReports.map((r: any) => (
                 <tr key={r.id}>
                   <td>{r.hotel}</td>
                   <td>{r.ingredient} ({r.qty} {r.unit})</td>
-                  <td style={{ color: '#FF3B30', fontWeight: 700 }}>₹{r.loss.toLocaleString()}</td>
+                  <td style={{ color: '#FF3B30', fontWeight: 700 }}>₹{Number(r.loss).toLocaleString()}</td>
                   <td><span className={`badge ${r.status === 'verified' ? 'badge-red' : r.status === 'submitted' ? 'badge-orange' : 'badge-gray'}`}>{r.status}</span></td>
                 </tr>
               ))}

@@ -1,14 +1,15 @@
 'use client';
 import React from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { TABLES } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 
 function ManagerOccupancy() {
-  const floors = [...new Set(TABLES.map(t => t.floor))];
-  const free = TABLES.filter(t => t.status === 'free').length;
-  const occupied = TABLES.filter(t => t.status === 'occupied').length;
-  const reserved = TABLES.filter(t => t.status === 'reserved').length;
-  const occupancyPct = Math.round((occupied / TABLES.length) * 100);
+  const { tables } = useData();
+  const floors = [...new Set(tables.map((t: any) => t.floor))];
+  const free = tables.filter((t: any) => t.status === 'free').length;
+  const occupied = tables.filter((t: any) => t.status === 'occupied').length;
+  const reserved = tables.filter((t: any) => t.status === 'reserved').length;
+  const occupancyPct = tables.length ? Math.round((occupied / tables.length) * 100) : 0;
 
   return (
     <DashboardLayout title="Occupancy Map">
@@ -41,8 +42,8 @@ function ManagerOccupancy() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             {[
-              { label: 'Total Seats', value: TABLES.reduce((a,t)=>a+t.capacity,0) },
-              { label: 'Occupied Seats', value: TABLES.filter(t=>t.status==='occupied').reduce((a,t)=>a+t.capacity,0) },
+              { label: 'Total Seats', value: tables.reduce((a: number,t: any)=>a+(t.cap||0),0) },
+              { label: 'Occupied Seats', value: tables.filter((t: any)=>t.status==='occupied').reduce((a: number,t: any)=>a+(t.cap||0),0) },
             ].map(s => (
               <div key={s.label} style={{ padding: '10px 16px', background: '#F4F6FB', borderRadius: 10, textAlign: 'center' }}>
                 <div style={{ fontWeight: 800, fontSize: 20 }}>{s.value}</div>
@@ -56,17 +57,17 @@ function ManagerOccupancy() {
       {floors.map(floor => (
         <div key={floor} className="card" style={{ marginBottom: 16 }}>
           <div className="card-header">
-            <div className="card-title">{floor}</div>
+            <div className="card-title">{floor as string}</div>
             <span style={{ fontSize: 12, color: '#64748B' }}>
-              {TABLES.filter(t=>t.floor===floor&&t.status==='occupied').length}/{TABLES.filter(t=>t.floor===floor).length} occupied
+              {tables.filter((t: any)=>t.floor===floor&&t.status==='occupied').length}/{tables.filter((t: any)=>t.floor===floor).length} occupied
             </span>
           </div>
           <div className="table-map">
-            {TABLES.filter(t => t.floor === floor).map(t => (
+            {tables.filter((t: any) => t.floor === floor).map((t: any) => (
               <div key={t.id} className={`table-box ${t.status}`}>
-                <div className="table-num">{t.number}</div>
+                <div className="table-num">{t.num || t.id}</div>
                 <div className="table-status">{t.status}</div>
-                <div style={{ fontSize: 10 }}>{t.capacity}p</div>
+                <div style={{ fontSize: 10 }}>{(t.cap||0)}p</div>
               </div>
             ))}
           </div>

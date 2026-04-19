@@ -1,15 +1,17 @@
 'use client';
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { PURCHASE_ORDERS, formatCurrency } from '@/lib/mockData';
+import { formatCurrency } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 
 function FranchiseApprovals() {
-  const [orders, setOrders] = useState(PURCHASE_ORDERS.filter(p => p.status === 'pending_approval'));
-  const [modal, setModal] = useState<{ order: typeof PURCHASE_ORDERS[0]; action: 'approve' | 'reject' } | null>(null);
+  const { purchaseOrders, updateItem } = useData();
+  const orders = purchaseOrders.filter((p: any) => p.status === 'pending_approval' || p.status === 'pending');
+  const [modal, setModal] = useState<{ order: any; action: 'approve' | 'reject' } | null>(null);
   const [reason, setReason] = useState('');
 
-  const handle = (id: string, action: string) => {
-    setOrders(prev => prev.filter(o => o.id !== id));
+  const handle = (id: string | number, action: string) => {
+    updateItem('purchaseOrders', id, { status: action === 'approve' ? 'approved' : 'rejected' });
     setModal(null);
     setReason('');
   };
@@ -26,7 +28,7 @@ function FranchiseApprovals() {
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', marginBottom: 24 }}>
         {[
           { label: 'Pending Approval', value: orders.length, icon: '⏳', color: '#FF8A34', bg: '#fff3e8' },
-          { label: 'Total Value', value: formatCurrency(orders.reduce((a,o)=>a+o.amount,0)), icon: '💰', color: '#2E5AFF', bg: '#e8edff' },
+          { label: 'Total Value', value: formatCurrency(orders.reduce((a: number, o: any) => a + (o.amount || 0), 0)), icon: '💰', color: '#2E5AFF', bg: '#e8edff' },
           { label: 'Approved Today', value: '3', icon: '✅', color: '#00C48C', bg: '#e8fdf7' },
         ].map(m => (
           <div className="metric-card" key={m.label}>
@@ -41,7 +43,7 @@ function FranchiseApprovals() {
         <div className="card"><div className="empty-state"><div className="empty-state-icon">✅</div><div className="empty-state-title">All Caught Up!</div><div className="empty-state-sub">No pending purchase orders at this time.</div></div></div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {orders.map(o => (
+          {orders.map((o: any) => (
             <div key={o.id} className="card" style={{ border: '2px solid #FF8A34' }}>
               <div className="card-body">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>

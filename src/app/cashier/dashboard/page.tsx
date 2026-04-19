@@ -3,19 +3,30 @@ import React, { useState } from 'react';
 
 import { useRouter } from "next/navigation";
 import DashboardLayout from '@/components/DashboardLayout';
-import { PENDING_PAYMENTS } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 
 function CashierDash() {
   const router = useRouter();
-  const [payments, setPayments] = useState(PENDING_PAYMENTS.map(p => ({ ...p })));
-  const [cashModal, setCashModal] = useState<typeof PENDING_PAYMENTS[0] | null>(null);
+  const { activeOrders, updateItem } = useData();
+
+  const pendingOrders = activeOrders.filter((o: any) => o.status === 'bill_requested');
+  const payments = pendingOrders.map((o: any) => ({
+    id: o.id,
+    orderId: o.id,
+    tableNum: o.tableNum,
+    customerName: o.worker || 'Walk-in',
+    amount: o.total || 0,
+    method: 'cash',
+    time: o.time
+  }));
+
+  const [cashModal, setCashModal] = useState<any | null>(null);
   const [cashReceived, setCashReceived] = useState('');
-  const [accepted, setAccepted] = useState<typeof PENDING_PAYMENTS>([]);
 
   const acceptCash = () => {
     if (!cashModal) return;
-    setAccepted(prev => [...prev, cashModal]);
-    setPayments(prev => prev.filter(p => p.id !== cashModal.id));
+    updateItem('activeOrders', cashModal.orderId, { status: 'paid' });
+    updateItem('tables', activeOrders.find((x: any) => x.id === cashModal.orderId)?.tableNum, { status: 'free' });
     setCashModal(null);
     setCashReceived('');
   };
@@ -65,7 +76,7 @@ function CashierDash() {
               </div>
               <div style={{ fontWeight: 800, fontSize: 18 }}>₹{p.amount}</div>
               <div style={{ display: 'flex', gap: 8 }}>
-                {p.method === 'cash'
+                {p.method === 'cash' || !p.method
                   ? <button className="btn btn-primary btn-sm" onClick={() => { setCashModal(p); setCashReceived(''); }}>Accept Cash</button>
                   : <button className="btn btn-danger btn-sm" onClick={() => router.push("/cashier/alarms")}>🔔 Go to Alarm</button>}
               </div>
