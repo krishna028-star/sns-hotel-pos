@@ -2,11 +2,18 @@
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { SALES_TREND, TOP_ITEMS, PAYMENT_BREAKDOWN, HOURLY_SALES, FRANCHISE_SALES, formatCurrency } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 function AdminSales() {
+  const { tenants, activeOrders } = useData();
   const [range, setRange] = useState('7d');
   const ranges = ['Today', '7d', '30d', 'Custom'];
+  
+  const liveOrderTotal = activeOrders.reduce((sum: number, o: any) => sum + (o.total || 0), 0);
+  const totalOrders = 14820 + activeOrders.length;
+  const baseRevenue = 1840000;
+  const liveRevenue = baseRevenue + liveOrderTotal;
 
   return (
     <DashboardLayout title="POS Sales Dashboard — Global">
@@ -25,10 +32,10 @@ function AdminSales() {
 
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>
         {[
-          { label: 'Total Revenue', value: '₹18.4L', trend: '↑ 12%', icon: '💰', color: '#2E5AFF', bg: '#e8edff' },
-          { label: 'Total Orders', value: '14,820', trend: '↑ 8%', icon: '📋', color: '#00C48C', bg: '#e0faf3' },
-          { label: 'Avg Bill Value', value: '₹365', trend: '↑ ₹22', icon: '🧾', color: '#FF8A34', bg: '#fff3e8' },
-          { label: 'Active Tenants', value: '4', trend: 'All reporting', icon: '🏢', color: '#9B59B6', bg: '#f3eeff' },
+          { label: 'Total Revenue', value: formatCurrency(liveRevenue), trend: '↑ 12%', icon: '💰', color: '#2E5AFF', bg: '#e8edff' },
+          { label: 'Total Orders', value: totalOrders.toLocaleString(), trend: '↑ 8%', icon: '📋', color: '#00C48C', bg: '#e0faf3' },
+          { label: 'Avg Bill Value', value: formatCurrency(liveRevenue / totalOrders), trend: '↑ ₹22', icon: '🧾', color: '#FF8A34', bg: '#fff3e8' },
+          { label: 'Active Tenants', value: String(tenants.length), trend: 'All reporting', icon: '🏢', color: '#9B59B6', bg: '#f3eeff' },
         ].map(m => (
           <div className="metric-card" key={m.label}>
             <div className="metric-icon" style={{ background: m.bg, color: m.color }}>{m.icon}</div>

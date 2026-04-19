@@ -56,16 +56,7 @@ export default function Topbar({ title }: TopbarProps) {
           )}
         </div>
 
-        <div
-          className="topbar-icon-btn"
-          title="Demo: Switch Role"
-          onClick={() => router.push('/login')}
-          style={{ fontSize: 12, width: 'auto', padding: '0 10px', gap: 4 }}
-        >
-          <span>🔀</span>
-          <span style={{ fontSize: 11, fontWeight: 600 }}>Switch Role</span>
-        </div>
-        
+
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 12px' }}>
           <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg, #2E5AFF, #00C48C)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 700 }}>
             {user?.avatar}

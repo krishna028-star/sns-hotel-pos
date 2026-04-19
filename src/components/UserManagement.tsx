@@ -41,6 +41,8 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
     staffId: '',
     age: '',
     salary: '',
+    workingDays: '26',
+    presenceThisMonth: '26',
     remarks: ''
   });
 
@@ -70,6 +72,8 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
       staffId: '',
       age: '',
       salary: '',
+      workingDays: '26',
+      presenceThisMonth: '26',
       remarks: ''
     });
   };
@@ -285,6 +289,16 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
                 <div className="form-group">
                   <label className="form-label">Monthly Salary (₹)</label>
                   <input className="form-input" type="number" value={formData.salary} onChange={e => setFormData({ ...formData, salary: e.target.value })} />
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="form-group">
+                  <label className="form-label">Required Work Days</label>
+                  <input className="form-input" type="number" value={formData.workingDays} onChange={e => setFormData({ ...formData, workingDays: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Present Days</label>
+                  <input className="form-input" type="number" value={formData.presenceThisMonth} onChange={e => setFormData({ ...formData, presenceThisMonth: e.target.value })} />
                 </div>
               </div>
               <div className="form-group">

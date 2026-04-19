@@ -2,6 +2,7 @@
 import React from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { FORECAST_DATA, formatCurrency } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 import { ComposedChart, Area, Line, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 const fullForecast = [
@@ -24,6 +25,9 @@ const recommendations = [
 ];
 
 function AdminAnticipate() {
+  const { ingredients } = useData();
+  const lowIngredients = ingredients.filter((i: any) => i.status !== 'ok').length;
+
   return (
     <DashboardLayout title="Anticipate View — Global Forecasts">
       <div className="page-header">
@@ -56,7 +60,7 @@ function AdminAnticipate() {
       <div className="metrics-grid" style={{ gridTemplateColumns:'repeat(3,1fr)' }}>
         {[
           { label:'Forecast Revenue (7d)', value:'₹18.5L', sub:'±5% confidence', icon:'📈', color:'#2E5AFF', bg:'#e8edff' },
-          { label:'Ingredients Running Out', value:'23 items', sub:'Within next 7 days', icon:'📦', color:'#FF8A34', bg:'#fff3e8' },
+          { label:'Ingredients Running Out', value:`${lowIngredients} items`, sub:'Within next 7 days', icon:'📦', color:'#FF8A34', bg:'#fff3e8' },
           { label:'Anomalies Detected', value:'5', sub:'Sales drop, theft spike', icon:'🔍', color:'#FF3B30', bg:'#fff0ef' },
         ].map(m=>(
           <div className="metric-card" key={m.label}>

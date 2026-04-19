@@ -2,16 +2,18 @@
 import React from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useAuth } from '@/lib/auth';
-import { formatCurrency, TENANTS, AUDIT_LOGS, SALES_TREND } from '@/lib/mockData';
+import { formatCurrency, AUDIT_LOGS, SALES_TREND } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import Link from 'next/link';
 
 function AdminDash() {
   const { users } = useAuth();
+  const { tenants } = useData();
 
   const metrics = [
     { label: 'Global Revenue (Today)', value: formatCurrency(SALES_TREND.reduce((a, b) => a + b.revenue, 0)), trend: '↑ 14%', icon: '💰', color: '#2E5AFF', bg: '#e8edff' },
-    { label: 'Active Tenants', value: String(TENANTS.length || 0), trend: 'Add via Tenants', icon: '🏢', color: '#1ABC9C', bg: '#e8fdf7' },
+    { label: 'Active Tenants', value: String(tenants.length || 0), trend: 'Add via Tenants', icon: '🏢', color: '#1ABC9C', bg: '#e8fdf7' },
     { label: 'Total Orders', value: '1,248', trend: 'Across all hotels', icon: '📋', color: '#FF8A34', bg: '#fff3e8' },
     { label: 'Low Stock Alerts', value: '0', trend: 'Add inventory', icon: '⚠️', color: '#FF3B30', bg: '#fff0ef' },
     { label: 'Active Theft Reports', value: '0', trend: 'All clear', icon: '🚨', color: '#9B59B6', bg: '#f3eeff' },
@@ -71,7 +73,7 @@ function AdminDash() {
           <div className="chart-title">⚡ Quick Actions</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[
-              { href: '/admin/tenants', icon: '🏢', label: 'Manage Tenants', sub: `${TENANTS.length} total`, color: '#1ABC9C' },
+              { href: '/admin/tenants', icon: '🏢', label: 'Manage Tenants', sub: `${tenants.length} total`, color: '#1ABC9C' },
               { href: '/admin/users', icon: '👥', label: 'Manage All Users', sub: `${users.length} registered`, color: '#2E5AFF' },
               { href: '/admin/audit', icon: '📋', label: 'View Audit Logs', sub: `${AUDIT_LOGS.length} entries`, color: '#9B59B6' },
               { href: '/admin/anticipate', icon: '🔮', label: 'Anticipate View', sub: '7-day forecast ready', color: '#FF8A34' },
@@ -104,15 +106,15 @@ function AdminDash() {
           <table className="data-table">
             <thead><tr><th>Tenant</th><th>Domain</th><th>Plan</th><th>Hotels</th><th>Status</th><th>Created</th></tr></thead>
             <tbody>
-              {TENANTS.length === 0 ? (
+              {tenants.length === 0 ? (
                 <tr><td colSpan={6} style={{ textAlign: 'center', padding: 32, color: '#94A3B8', fontSize: 13 }}>No tenants yet. Add your first tenant to get started.</td></tr>
               ) : (
-                TENANTS.map(t => (
+                tenants.map((t: any) => (
                   <tr key={t.id}>
                     <td><strong>{t.name}</strong></td>
                     <td style={{ color: 'var(--text-secondary)', fontFamily: 'monospace', fontSize: 12 }}>{t.domain}</td>
                     <td><span className="badge badge-blue">{t.plan}</span></td>
-                    <td>{t.hotels}</td>
+                    <td>{t.hotels || 0}</td>
                     <td><span className={`badge ${t.status === 'active' ? 'badge-green' : t.status === 'trial' ? 'badge-orange' : 'badge-red'}`}>{t.status}</span></td>
                     <td style={{ color: 'var(--text-secondary)', fontSize: 12 }}>{t.created}</td>
                   </tr>

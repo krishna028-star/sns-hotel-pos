@@ -1,7 +1,8 @@
 'use client';
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { INGREDIENTS, PURCHASE_ORDERS, THEFT_REPORTS, formatCurrency } from '@/lib/mockData';
+import { formatCurrency } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 const stockTrend = [
@@ -10,7 +11,9 @@ const stockTrend = [
 ];
 
 function AdminInventory() {
-  const low = INGREDIENTS.filter(i => i.status !== 'ok');
+  const { ingredients, theftReports, purchaseOrders } = useData();
+  const low = ingredients.filter((i: any) => i.status !== 'ok');
+
   return (
     <DashboardLayout title="Inventory Stock Dashboard — Global">
       <div className="page-header">
@@ -26,9 +29,9 @@ function AdminInventory() {
       <div className="metrics-grid" style={{ gridTemplateColumns:'repeat(4,1fr)' }}>
         {[
           { label:'Total Stock Value', value:'₹45.2L', icon:'💰', color:'#2E5AFF', bg:'#e8edff' },
-          { label:'Low Stock Items', value:'8', icon:'⚠️', color:'#FF8A34', bg:'#fff3e8' },
-          { label:'Active Theft Reports', value:'5', icon:'🚨', color:'#FF3B30', bg:'#fff0ef' },
-          { label:'Pending POs', value:'3', icon:'📋', color:'#9B59B6', bg:'#f3eeff' },
+          { label:'Low Stock Items', value: String(low.length), icon:'⚠️', color:'#FF8A34', bg:'#fff3e8' },
+          { label:'Active Theft Reports', value: String(theftReports.length), icon:'🚨', color:'#FF3B30', bg:'#fff0ef' },
+          { label:'Pending POs', value: String(purchaseOrders.filter((p: any) => p.status === 'pending').length), icon:'📋', color:'#9B59B6', bg:'#f3eeff' },
         ].map(m=>(
           <div className="metric-card" key={m.label}>
             <div className="metric-icon" style={{ background:m.bg, color:m.color }}>{m.icon}</div>
@@ -55,9 +58,9 @@ function AdminInventory() {
           <div className="chart-title">🚨 Theft Reports by Status</div>
           <div style={{ display:'flex', flexDirection:'column', gap:10, marginTop:8 }}>
             {[
-              { label:'Submitted', count:3, color:'#FF8A34' },
-              { label:'Verified', count:2, color:'#FF3B30' },
-              { label:'Rejected', count:1, color:'#00C48C' },
+              { label:'Submitted', count: theftReports.filter((t: any) => t.status === 'submitted').length, color:'#FF8A34' },
+              { label:'Verified', count: theftReports.filter((t: any) => t.status === 'verified').length, color:'#FF3B30' },
+              { label:'Rejected', count: theftReports.filter((t: any) => t.status === 'rejected').length, color:'#00C48C' },
             ].map(s=>(
               <div key={s.label} style={{ display:'flex', alignItems:'center', gap:12 }}>
                 <div style={{ width:10, height:10, borderRadius:'50%', background:s.color, flexShrink:0 }}/>
@@ -70,7 +73,7 @@ function AdminInventory() {
             ))}
           </div>
           <div className="divider"/>
-          <div style={{ fontSize:12, color:'var(--text-secondary)' }}>Total estimated loss: <strong style={{ color:'var(--danger)' }}>₹3,560</strong></div>
+          <div style={{ fontSize:12, color:'var(--text-secondary)' }}>Total estimated loss: <strong style={{ color:'var(--danger)' }}>{formatCurrency(theftReports.reduce((sum: number, t: any) => sum + (t.loss || 0), 0))}</strong></div>
         </div>
       </div>
 
@@ -80,7 +83,7 @@ function AdminInventory() {
           <table className="data-table">
             <thead><tr><th>Ingredient</th><th>Category</th><th>Current Stock</th><th>Reorder Level</th><th>Status</th><th>Est. Value</th></tr></thead>
             <tbody>
-              {INGREDIENTS.filter(i=>i.status!=='ok').map(ing=>(
+              {low.map((ing: any)=>(
                 <tr key={ing.id}>
                   <td><strong>{ing.name}</strong></td>
                   <td style={{ color:'var(--text-secondary)' }}>{ing.category}</td>
@@ -101,7 +104,7 @@ function AdminInventory() {
           <table className="data-table">
             <thead><tr><th>Item</th><th>Qty Lost</th><th>Est. Loss</th><th>Hotel</th><th>Date</th><th>Status</th></tr></thead>
             <tbody>
-              {THEFT_REPORTS.map(t=>(
+              {theftReports.map((t: any)=>(
                 <tr key={t.id}>
                   <td><strong>{t.ingredient}</strong></td>
                   <td>{t.qty} {t.unit}</td>
