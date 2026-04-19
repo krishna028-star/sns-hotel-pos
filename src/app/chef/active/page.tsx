@@ -1,15 +1,16 @@
 'use client';
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { ACTIVE_ORDERS } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 import { useNotifications } from '@/lib/notifications';
 
 function ChefActive() {
-  const [orders, setOrders] = useState(ACTIVE_ORDERS.filter(o => o.status === 'cooking'));
+  const { activeOrders, updateItem } = useData();
+  const orders = activeOrders.filter(o => o.status === 'cooking');
   const { notify } = useNotifications();
 
   const markReady = (orderId: string, tableNum: number) => {
-    setOrders(prev => prev.filter(o => o.id !== orderId));
+    updateItem('activeOrders', orderId, { status: 'ready' });
     notify('order', `✅ KOT ${orderId} — Table ${tableNum} is ready to serve!`);
   };
 

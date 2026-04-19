@@ -3,17 +3,21 @@ import React, { useState } from 'react';
 
 import { useRouter } from "next/navigation";
 import DashboardLayout from '@/components/DashboardLayout';
-import { ACTIVE_ORDERS, PENDING_KOTS, TABLES, formatCurrency } from '@/lib/mockData';
+import { formatCurrency } from '@/lib/mockData';
 
 const statusColor: Record<string, string> = { ready: '#00C48C', cooking: '#FF8A34', kot_sent: '#2E5AFF', bill_requested: '#9B59B6', pending: '#94A3B8' };
 const statusLabel: Record<string, string> = { ready: '✅ Ready', cooking: '🔥 Cooking', kot_sent: '📤 KOT Sent', bill_requested: '🧾 Bill Req.', pending: '⏳ Pending' };
 
+import { useData } from '@/lib/DataContext';
+
 function ManagerDash() {
   const router = useRouter();
-  const occupied = TABLES.filter(t => t.status === 'occupied').length;
-  const free = TABLES.filter(t => t.status === 'free').length;
-  const reserved = TABLES.filter(t => t.status === 'reserved').length;
-  const totalRev = ACTIVE_ORDERS.reduce((a, b) => a + b.total, 0);
+  const { tables, activeOrders, pendingKots } = useData();
+  
+  const occupied = tables.filter((t: any) => t.status === 'occupied').length;
+  const free = tables.filter((t: any) => t.status === 'free').length;
+  const reserved = tables.filter((t: any) => t.status === 'reserved').length;
+  const totalRev = activeOrders.reduce((a: any, b: any) => a + b.total, 0);
   const hotelStaff = ['Vijay Kumar', 'Chef Ravi', 'Anita Rao'];
 
   return (

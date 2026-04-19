@@ -14,9 +14,11 @@ type Supplier = typeof INITIAL_SUPPLIERS[0];
 
 const emptyForm = { name: '', contact: '', phone: '', email: '', categories: '' };
 
+import { useData } from '@/lib/DataContext';
+
 function Suppliers() {
   const router = useRouter();
-  const [suppliers, setSuppliers] = useState(INITIAL_SUPPLIERS);
+  const { suppliers, addItem, updateItem } = useData();
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyForm);
@@ -27,7 +29,7 @@ function Suppliers() {
     setShowModal(true);
   };
 
-  const openEdit = (s: Supplier) => {
+  const openEdit = (s: any) => {
     setEditId(s.id);
     setForm({ name: s.name, contact: s.contact, phone: s.phone, email: s.email, categories: s.categories });
     setShowModal(true);
@@ -36,12 +38,14 @@ function Suppliers() {
   const handleSave = () => {
     if (!form.name) return alert('Company name is required');
     if (editId !== null) {
-      setSuppliers(prev => prev.map(s => s.id === editId ? { ...s, ...form } : s));
+      updateItem('suppliers', editId, form);
     } else {
-      setSuppliers(prev => [
-        ...prev,
-        { id: Date.now(), ...form, rating: 4.0, status: 'active', lastOrder: new Date().toISOString().slice(0, 10) }
-      ]);
+      addItem('suppliers', { 
+        ...form, 
+        rating: 4.0, 
+        status: 'active', 
+        lastOrder: new Date().toISOString().slice(0, 10) 
+      });
     }
     setShowModal(false);
   };

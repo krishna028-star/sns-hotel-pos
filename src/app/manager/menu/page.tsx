@@ -1,12 +1,13 @@
 'use client';
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { MENU_ITEMS, MENU_CATEGORIES, formatCurrency } from '@/lib/mockData';
+import { MENU_CATEGORIES, formatCurrency } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
 
-type MenuItem = typeof MENU_ITEMS[0];
+type MenuItem = { id: number; name: string; price: number; category: string; available: boolean; image: string };
 
 function ManagerMenu() {
-  const [items, setItems] = useState(MENU_ITEMS);
+  const { menuItems: items, addItem, updateItem, deleteItem: remove } = useData();
   const [category, setCategory] = useState('All');
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -17,8 +18,8 @@ function ManagerMenu() {
     i.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const toggleAvail = (id: number) => setItems(prev => prev.map(i => i.id === id ? { ...i, available: !i.available } : i));
-  const deleteItem = (id: number) => setItems(prev => prev.filter(i => i.id !== id));
+  const toggleAvail = (id: number) => updateItem('menuItems', id, { available: !(items.find(i => i.id === id)?.available) });
+  const deleteItem = (id: number) => remove('menuItems', id);
 
   const openEdit = (item?: MenuItem) => {
     setEditing(item ?? { name: '', price: 0, category: 'Main Course', available: true, image: '🍽️' });
@@ -28,9 +29,9 @@ function ManagerMenu() {
   const saveItem = () => {
     if (!editing?.name) return;
     if (editing.id) {
-      setItems(prev => prev.map(i => i.id === editing.id ? { ...i, ...editing } as MenuItem : i));
+      updateItem('menuItems', editing.id, editing);
     } else {
-      setItems(prev => [...prev, { id: Date.now(), name: editing.name!, price: editing.price ?? 0, category: editing.category ?? 'Main Course', available: editing.available ?? true, image: editing.image ?? '🍽️' }]);
+      addItem('menuItems', { ...editing, id: Date.now() });
     }
     setShowModal(false);
     setEditing(null);

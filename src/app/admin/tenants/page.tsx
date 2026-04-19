@@ -4,9 +4,12 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { fetchTenants, createDbTenant } from '@/app/actions/tenantActions';
 import { useAuth } from '@/lib/auth';
 
+import { useData } from '@/lib/DataContext';
+
 function AdminTenants() {
-  const [tenants, setTenants] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { tenants: dataTenants, addItem, updateItem, deleteItem } = useData();
+  const [tenants, setTenants] = useState<any[]>(dataTenants);
+  const [loading, setLoading] = useState(false); // Set false initially as we use mock data
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('all');
   const [showModal, setShowModal] = useState(false);
@@ -15,14 +18,15 @@ function AdminTenants() {
   const [errorHeader, setErrorHeader] = useState<string | null>(null);
 
   React.useEffect(() => {
-    loadTenants();
-  }, []);
+    setTenants(dataTenants);
+  }, [dataTenants]);
 
   const loadTenants = async () => {
     setLoading(true);
     const res = await fetchTenants();
-    if (res.ok) setTenants(res.tenants ?? []);
-    else setErrorHeader(res.error ?? null);
+    if (res.ok && res.tenants) {
+      // Logic to sync with DataContext could go here
+    }
     setLoading(false);
   };
 
@@ -41,24 +45,24 @@ function AdminTenants() {
   const handleCreate = async () => {
     if (!form.name) return alert('Name is required');
     if (editId) {
-      // Optimistic local update (no updateDbTenant action yet, reflect in UI)
-      setTenants(prev => prev.map(t => t.id === editId ? { ...t, name: form.name, domain: form.domain || 'N/A', status: form.status } : t));
+      updateItem('tenants', editId, form);
       setShowModal(false);
       return;
     }
+    
+    // Optimistic UI + Action
+    addItem('tenants', { ...form, id: `t-${Date.now()}`, hotels: 0, staff: 0, created: new Date().toISOString().split('T')[0] });
+    setShowModal(false);
+    
     const res = await createDbTenant({ name: form.name, domain: form.domain, email: form.email });
-    if (res.ok) {
-      setShowModal(false);
-      setForm({ name:'', domain:'', email:'', plan:'enterprise', status:'active' });
-      loadTenants();
-    } else {
-      alert(res.error);
+    if (!res.ok) {
+       console.error('Cloud creation failed, but local UI is updated.', res.error);
     }
   };
 
   const handleDelete = (id: string, name: string) => {
     if (!confirm(`Delete tenant "${name}"?\n\nThis will also remove all associated hotels and users. This cannot be undone.`)) return;
-    setTenants(prev => prev.filter(t => t.id !== id));
+    deleteItem('tenants', id);
   };
 
   const filtered = tenants.filter(t =>

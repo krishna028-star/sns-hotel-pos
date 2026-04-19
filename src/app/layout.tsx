@@ -32,6 +32,8 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
+import { DataProvider } from '@/lib/DataContext';
+
 export default function RootLayout({
   children,
 }: {
@@ -80,11 +82,13 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <AuthProvider>
-          <NotificationProvider>
-            <Providers>
-              {children}
-            </Providers>
-          </NotificationProvider>
+          <DataProvider>
+            <NotificationProvider>
+              <Providers>
+                {children}
+              </Providers>
+            </NotificationProvider>
+          </DataProvider>
         </AuthProvider>
       </body>
     </html>
