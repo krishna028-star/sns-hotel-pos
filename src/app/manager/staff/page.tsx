@@ -119,7 +119,12 @@ function ManagerStaff() {
                         setShowModal(true);
                       }}>🔑 Pass</button>
                       {canManage(s.role) && (
-                        <button className="btn btn-ghost btn-sm" style={{ color: '#FF3B30' }}>Remove</button>
+                        <button className="btn btn-ghost btn-sm" style={{ color: '#FF3B30' }} onClick={() => {
+                          if(confirm(`Are you sure you want to remove ${s.name}?\n\nThis will revoke their access to this hotel.`)) {
+                            alert('Staff member removed (local UI)');
+                            // In real app, call an action to delete from DB
+                          }
+                        }}>Remove</button>
                       )}
                     </div>
                   </td>

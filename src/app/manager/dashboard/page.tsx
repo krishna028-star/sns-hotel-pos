@@ -13,6 +13,8 @@ function ManagerDash() {
   const occupied = TABLES.filter(t => t.status === 'occupied').length;
   const free = TABLES.filter(t => t.status === 'free').length;
   const reserved = TABLES.filter(t => t.status === 'reserved').length;
+  const totalRev = ACTIVE_ORDERS.reduce((a, b) => a + b.total, 0);
+  const hotelStaff = ['Vijay Kumar', 'Chef Ravi', 'Anita Rao'];
 
   return (
     <DashboardLayout title="Hotel Manager Dashboard">
@@ -34,10 +36,10 @@ function ManagerDash() {
       {/* Metrics */}
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>
         {[
-          { label: "Today's Revenue", value: '₹0', trend: '0% change', icon: '💰', color: '#2E5AFF', bg: '#e8edff' },
+          { label: "Today's Revenue", value: formatCurrency(totalRev), trend: '↑ 12%', icon: '💰', color: '#2E5AFF', bg: '#e8edff' },
           { label: 'Active Orders', value: ACTIVE_ORDERS.length, trend: 'Right now', icon: '📋', color: '#FF8A34', bg: '#fff3e8' },
           { label: 'Pending KOTs', value: PENDING_KOTS.length, trend: 'Needs attention', icon: '🔔', color: '#FF3B30', bg: '#fff0ef' },
-          { label: 'Staff On Duty', value: '0', trend: 'None active', icon: '👥', color: '#00C48C', bg: '#e8fdf7' },
+          { label: 'Staff On Duty', value: hotelStaff.length, trend: 'Across shifts', icon: '👥', color: '#00C48C', bg: '#e8fdf7' },
         ].map(m => (
           <div className="metric-card" key={m.label}>
             <div className="metric-icon" style={{ background: m.bg, color: m.color }}>{m.icon}</div>

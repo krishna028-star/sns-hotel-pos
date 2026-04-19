@@ -5,10 +5,16 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { PENDING_PAYMENTS, formatCurrency } from '@/lib/mockData';
 import { useNotifications } from '@/lib/notifications';
 
+const ORDER_ITEMS: Record<string, {name:string;qty:number;price:number}[]> = {
+  'ORD-104': [{name:'Chicken Biryani',qty:2,price:360},{name:'Raita',qty:2,price:80},{name:'Gulab Jamun',qty:2,price:120}],
+  'ORD-106': [{name:'Paneer Tikka',qty:1,price:240},{name:'Dal Makhani',qty:1,price:220},{name:'Garlic Naan',qty:2,price:80},{name:'Mango Lassi',qty:1,price:120}],
+};
+
 function CashierPending() {
   const [payments, setPayments] = useState(PENDING_PAYMENTS.map(p => ({ ...p })));
   const [cashModal, setCashModal] = useState<typeof PENDING_PAYMENTS[0] | null>(null);
   const [cashReceived, setCashReceived] = useState('');
+  const [viewOrder, setViewOrder] = useState<typeof PENDING_PAYMENTS[0] | null>(null);
   const { notify } = useNotifications();
   const router = useRouter();
 
@@ -53,7 +59,7 @@ function CashierPending() {
                     ? <button className="btn btn-primary" onClick={() => { setCashModal(p); setCashReceived(''); }}>💵 Accept Cash</button>
                     // BUG FIX: was <a><button> — invalid HTML, buttons cannot be nested in anchors
                     : <button className="btn btn-danger" onClick={() => router.push('/cashier/alarms')}>🔔 Go to Alarm</button>}
-                  <button className="btn btn-ghost btn-sm">View Order</button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => setViewOrder(p)}>View Order</button>
                 </div>
               </div>
             </div>
@@ -87,6 +93,33 @@ function CashierPending() {
             <div className="modal-footer">
               <button className="btn btn-outline" onClick={() => setCashModal(null)}>Cancel</button>
               <button className="btn btn-primary btn-lg" disabled={parseFloat(cashReceived || '0') < cashModal.amount} onClick={acceptCash}>✅ Accept & Print Bill</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {viewOrder && (
+        <div className="modal-backdrop" onClick={() => setViewOrder(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">📋 Order — {viewOrder.orderId}</div>
+              <button className="btn btn-ghost" onClick={() => setViewOrder(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div style={{ marginBottom: 12, color: '#64748B', fontSize: 13 }}>Table {viewOrder.tableNum} · {viewOrder.customerName} · {viewOrder.time}</div>
+              {(ORDER_ITEMS[viewOrder.orderId] ?? []).map((item, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #F1F5F9', fontSize: 14 }}>
+                  <span>{item.name} × {item.qty}</span>
+                  <strong style={{ color: '#2E5AFF' }}>{formatCurrency(item.price * item.qty)}</strong>
+                </div>
+              ))}
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '14px 0', fontWeight: 800, fontSize: 18 }}>
+                <span>Total</span><span style={{ color: '#2E5AFF' }}>{formatCurrency(viewOrder.amount)}</span>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-outline" onClick={() => setViewOrder(null)}>Close</button>
+              {viewOrder.method === 'cash' && <button className="btn btn-primary" onClick={() => { setViewOrder(null); setCashModal(viewOrder); setCashReceived(''); }}>💵 Accept Cash</button>}
             </div>
           </div>
         </div>

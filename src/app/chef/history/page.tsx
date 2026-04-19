@@ -1,10 +1,15 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 
-const history: any[] = [];
+const INITIAL_HISTORY = [
+  { id: 'KOT-198', table: '4', items: [{ name: 'Chicken Tikka', qty: 2 }, { name: 'Naan', qty: 2 }], time: '6:30 PM', duration: '18 min', chef: 'Chef Ravi' },
+  { id: 'KOT-199', table: 'G2', items: [{ name: 'Paneer Tikka', qty: 1 }, { name: 'Dal Makhani', qty: 1 }], time: '6:45 PM', duration: '22 min', chef: 'Chef Ravi' },
+  { id: 'KOT-200', table: 'T1', items: [{ name: 'Chicken Biryani', qty: 2 }], time: '7:15 PM', duration: '25 min', chef: 'Chef Ravi' },
+];
 
 function ChefHistory() {
+  const [history] = useState(INITIAL_HISTORY);
   return (
     <DashboardLayout title="KOT History">
       <div className="page-header">

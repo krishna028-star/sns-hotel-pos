@@ -32,6 +32,10 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
   const [editId, setEditId] = useState<number | string | null>(null);
 
   const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    role: '',
+    tenant: '',
     hotel: '',
     password: '',
     staffId: '',

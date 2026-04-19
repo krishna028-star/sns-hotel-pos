@@ -1,20 +1,50 @@
 'use client';
 import React, { useState } from 'react';
-
-import { useRouter } from "next/navigation";
+import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 
-const suppliers = [
-  { id: 1, name: 'Fresh Foods Co.', contact: 'Ravi Kumar', phone: '+91 94001 12345', email: 'ravi@freshfoods.com', categories: 'Meat, Poultry', rating: 4.5, status: 'active', lastOrder: '2025-03-29' },
-  { id: 2, name: 'Dairy Direct', contact: 'Meena Shah', phone: '+91 98001 67890', email: 'meena@dairydirect.com', categories: 'Dairy, Eggs', rating: 4.8, status: 'active', lastOrder: '2025-03-28' },
-  { id: 3, name: 'Veggie World', contact: 'Suresh Iyer', phone: '+91 96001 34567', email: 'suresh@veggieworld.com', categories: 'Vegetables, Fruits', rating: 4.2, status: 'active', lastOrder: '2025-03-27' },
-  { id: 4, name: 'Spice Garden', contact: 'Priya Nair', phone: '+91 97001 56789', email: 'priya@spicegarden.com', categories: 'Spices, Condiments', rating: 4.6, status: 'active', lastOrder: '2025-03-26' },
+const INITIAL_SUPPLIERS = [
+  { id: 1, name: 'Fresh Foods Co.', contact: 'Ravi Kumar',  phone: '+91 94001 12345', email: 'ravi@freshfoods.com',  categories: 'Meat, Poultry',          rating: 4.5, status: 'active', lastOrder: '2025-04-16' },
+  { id: 2, name: 'Dairy Direct',    contact: 'Meena Shah',  phone: '+91 98001 67890', email: 'meena@dairydirect.com', categories: 'Dairy, Eggs',             rating: 4.8, status: 'active', lastOrder: '2025-04-15' },
+  { id: 3, name: 'Veggie World',    contact: 'Suresh Iyer', phone: '+91 96001 34567', email: 'suresh@veggieworld.com', categories: 'Vegetables, Fruits',     rating: 4.2, status: 'active', lastOrder: '2025-04-14' },
+  { id: 4, name: 'Spice Garden',    contact: 'Priya Nair',  phone: '+91 97001 56789', email: 'priya@spicegarden.com', categories: 'Spices, Condiments',     rating: 4.6, status: 'active', lastOrder: '2025-04-13' },
 ];
+
+type Supplier = typeof INITIAL_SUPPLIERS[0];
+
+const emptyForm = { name: '', contact: '', phone: '', email: '', categories: '' };
 
 function Suppliers() {
   const router = useRouter();
+  const [suppliers, setSuppliers] = useState(INITIAL_SUPPLIERS);
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ name: '', contact: '', phone: '', email: '', categories: '' });
+  const [editId, setEditId] = useState<number | null>(null);
+  const [form, setForm] = useState(emptyForm);
+
+  const openAdd = () => {
+    setEditId(null);
+    setForm(emptyForm);
+    setShowModal(true);
+  };
+
+  const openEdit = (s: Supplier) => {
+    setEditId(s.id);
+    setForm({ name: s.name, contact: s.contact, phone: s.phone, email: s.email, categories: s.categories });
+    setShowModal(true);
+  };
+
+  const handleSave = () => {
+    if (!form.name) return alert('Company name is required');
+    if (editId !== null) {
+      setSuppliers(prev => prev.map(s => s.id === editId ? { ...s, ...form } : s));
+    } else {
+      setSuppliers(prev => [
+        ...prev,
+        { id: Date.now(), ...form, rating: 4.0, status: 'active', lastOrder: new Date().toISOString().slice(0, 10) }
+      ]);
+    }
+    setShowModal(false);
+  };
 
   const renderStars = (rating: number) => '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating));
 
@@ -25,7 +55,7 @@ function Suppliers() {
           <div className="page-header-title">🚚 Suppliers</div>
           <div className="page-header-sub">Manage vendor contacts and supply relationships</div>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowModal(true)}>+ Add Supplier</button>
+        <button className="btn btn-primary" onClick={openAdd}>+ Add Supplier</button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
@@ -49,8 +79,8 @@ function Suppliers() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14, paddingTop: 12, borderTop: '1px solid #F1F5F9' }}>
                 <span style={{ color: '#F39C12', fontSize: 14 }}>{renderStars(s.rating)} <span style={{ fontSize: 12, color: '#64748B' }}>({s.rating})</span></span>
                 <div style={{ display: 'flex', gap: 6 }}>
-                  <button className="btn btn-outline btn-sm">Edit</button>
-                  <button className="btn btn-primary btn-sm" onClick={() => router.push("/inventory/purchase-orders")}>New PO</button>
+                  <button className="btn btn-outline btn-sm" onClick={() => openEdit(s)}>Edit</button>
+                  <button className="btn btn-primary btn-sm" onClick={() => router.push('/inventory/purchase-orders')}>New PO</button>
                 </div>
               </div>
             </div>
@@ -62,12 +92,12 @@ function Suppliers() {
         <div className="modal-backdrop" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <div className="modal-title">Add Supplier</div>
+              <div className="modal-title">{editId ? 'Edit Supplier' : 'Add Supplier'}</div>
               <button className="btn btn-ghost" onClick={() => setShowModal(false)}>✕</button>
             </div>
             <div className="modal-body">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <div className="form-group"><label className="form-label">Company Name</label><input className="form-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} /></div>
+                <div className="form-group"><label className="form-label">Company Name *</label><input className="form-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} /></div>
                 <div className="form-group"><label className="form-label">Contact Person</label><input className="form-input" value={form.contact} onChange={e => setForm(f => ({ ...f, contact: e.target.value }))} /></div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div className="form-group"><label className="form-label">Phone</label><input className="form-input" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} /></div>
@@ -78,7 +108,7 @@ function Suppliers() {
             </div>
             <div className="modal-footer">
               <button className="btn btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={() => setShowModal(false)}>Add Supplier</button>
+              <button className="btn btn-primary" onClick={handleSave}>{editId ? 'Save Changes' : 'Add Supplier'}</button>
             </div>
           </div>
         </div>

@@ -10,9 +10,9 @@ function AdminDash() {
   const { users } = useAuth();
 
   const metrics = [
-    { label: 'Global Revenue (Today)', value: '₹0', trend: 'No data yet', icon: '💰', color: '#2E5AFF', bg: '#e8edff' },
+    { label: 'Global Revenue (Today)', value: formatCurrency(SALES_TREND.reduce((a, b) => a + b.revenue, 0)), trend: '↑ 14%', icon: '💰', color: '#2E5AFF', bg: '#e8edff' },
     { label: 'Active Tenants', value: String(TENANTS.length || 0), trend: 'Add via Tenants', icon: '🏢', color: '#1ABC9C', bg: '#e8fdf7' },
-    { label: 'Total Orders', value: '0', trend: 'Start taking orders', icon: '📋', color: '#FF8A34', bg: '#fff3e8' },
+    { label: 'Total Orders', value: '1,248', trend: 'Across all hotels', icon: '📋', color: '#FF8A34', bg: '#fff3e8' },
     { label: 'Low Stock Alerts', value: '0', trend: 'Add inventory', icon: '⚠️', color: '#FF3B30', bg: '#fff0ef' },
     { label: 'Active Theft Reports', value: '0', trend: 'All clear', icon: '🚨', color: '#9B59B6', bg: '#f3eeff' },
     { label: 'System Users', value: String(users.length), trend: 'Registered accounts', icon: '👥', color: '#F39C12', bg: '#fffbec' },

@@ -1,10 +1,17 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { ACTIVE_ORDERS } from '@/lib/mockData';
+import { useNotifications } from '@/lib/notifications';
 
 function ChefActive() {
-  const cooking = ACTIVE_ORDERS.filter(o => o.status === 'cooking');
+  const [orders, setOrders] = useState(ACTIVE_ORDERS.filter(o => o.status === 'cooking'));
+  const { notify } = useNotifications();
+
+  const markReady = (orderId: string, tableNum: number) => {
+    setOrders(prev => prev.filter(o => o.id !== orderId));
+    notify('order', `✅ KOT ${orderId} — Table ${tableNum} is ready to serve!`);
+  };
 
   return (
     <DashboardLayout title="Active KOTs">
@@ -13,13 +20,19 @@ function ChefActive() {
           <div className="page-header-title">🔥 Active KOTs</div>
           <div className="page-header-sub">Orders currently being prepared in the kitchen</div>
         </div>
-        <div className="stat-pill"><strong style={{ color: '#2E5AFF' }}>{cooking.length}</strong> Cooking</div>
+        <div className="stat-pill"><strong style={{ color: orders.length > 0 ? '#FF8A34' : '#00C48C' }}>{orders.length}</strong> Cooking</div>
       </div>
 
-      {cooking.length === 0 ? (
-        <div className="card"><div className="empty-state"><div className="empty-state-icon">🍽️</div><div className="empty-state-title">Nothing Cooking</div><div className="empty-state-sub">Accept pending KOTs to start cooking.</div></div></div>
+      {orders.length === 0 ? (
+        <div className="card">
+          <div className="empty-state">
+            <div className="empty-state-icon">🍽️</div>
+            <div className="empty-state-title">Nothing Cooking</div>
+            <div className="empty-state-sub">Accept pending KOTs to start cooking. Completed orders will clear here.</div>
+          </div>
+        </div>
       ) : (
-        cooking.map(order => (
+        orders.map(order => (
           <div key={order.id} className="kot-card cooking" style={{ marginBottom: 14 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
@@ -37,7 +50,12 @@ function ChefActive() {
                   </div>
                 ))}
               </div>
-              <button className="btn btn-secondary">✅ Mark Ready</button>
+              <button
+                className="btn btn-secondary"
+                onClick={() => markReady(order.id, order.tableNum)}
+              >
+                ✅ Mark Ready
+              </button>
             </div>
           </div>
         ))

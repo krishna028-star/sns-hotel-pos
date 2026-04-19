@@ -1,7 +1,11 @@
+'use client';
+import React, { useState } from 'react';
+import DashboardLayout from '@/components/DashboardLayout';
 import { fetchHotels, createDbHotel } from '@/app/actions/hotelActions';
 import { useAuth } from '@/lib/auth';
 import { formatCurrency } from '@/lib/mockData';
 import { fetchTenants } from '@/app/actions/tenantActions';
+
 
 function FranchiseHotels() {
   const { user } = useAuth();

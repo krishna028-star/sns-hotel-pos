@@ -1,8 +1,8 @@
 'use client';
 import React, { useState } from 'react';
+import DashboardLayout from '@/components/DashboardLayout';
 import { fetchTenants, createDbTenant } from '@/app/actions/tenantActions';
 import { useAuth } from '@/lib/auth';
-import { formatDate } from '@/lib/mockData';
 
 function AdminTenants() {
   const [tenants, setTenants] = useState<any[]>([]);
@@ -10,6 +10,7 @@ function AdminTenants() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('all');
   const [showModal, setShowModal] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState({ name:'', domain:'', email:'', plan:'enterprise', status:'active' });
   const [errorHeader, setErrorHeader] = useState<string | null>(null);
 
@@ -20,13 +21,31 @@ function AdminTenants() {
   const loadTenants = async () => {
     setLoading(true);
     const res = await fetchTenants();
-    if (res.ok) setTenants(res.tenants);
-    else setErrorHeader(res.error);
+    if (res.ok) setTenants(res.tenants ?? []);
+    else setErrorHeader(res.error ?? null);
     setLoading(false);
+  };
+
+  const openCreate = () => {
+    setEditId(null);
+    setForm({ name:'', domain:'', email:'', plan:'enterprise', status:'active' });
+    setShowModal(true);
+  };
+
+  const openEdit = (t: any) => {
+    setEditId(t.id);
+    setForm({ name: t.name, domain: t.domain === 'N/A' ? '' : t.domain, email: '', plan: t.plan ?? 'enterprise', status: t.status ?? 'active' });
+    setShowModal(true);
   };
 
   const handleCreate = async () => {
     if (!form.name) return alert('Name is required');
+    if (editId) {
+      // Optimistic local update (no updateDbTenant action yet, reflect in UI)
+      setTenants(prev => prev.map(t => t.id === editId ? { ...t, name: form.name, domain: form.domain || 'N/A', status: form.status } : t));
+      setShowModal(false);
+      return;
+    }
     const res = await createDbTenant({ name: form.name, domain: form.domain, email: form.email });
     if (res.ok) {
       setShowModal(false);
@@ -37,9 +56,14 @@ function AdminTenants() {
     }
   };
 
+  const handleDelete = (id: string, name: string) => {
+    if (!confirm(`Delete tenant "${name}"?\n\nThis will also remove all associated hotels and users. This cannot be undone.`)) return;
+    setTenants(prev => prev.filter(t => t.id !== id));
+  };
+
   const filtered = tenants.filter(t =>
-    (status==='all' || t.status===status) &&
-    (t.name.toLowerCase().includes(search.toLowerCase()) || t.domain.toLowerCase().includes(search.toLowerCase()))
+    (status === 'all' || t.status === status) &&
+    (t.name.toLowerCase().includes(search.toLowerCase()) || (t.domain && t.domain.toLowerCase().includes(search.toLowerCase())))
   );
 
   return (
@@ -50,9 +74,15 @@ function AdminTenants() {
           <div className="page-header-sub">Create, manage and oversee all hotel chain accounts</div>
         </div>
         <div className="page-header-actions">
-          <button className="btn btn-primary" onClick={()=>setShowModal(true)}>+ New Tenant</button>
+          <button className="btn btn-primary" onClick={openCreate}>+ New Tenant</button>
         </div>
       </div>
+
+      {errorHeader && (
+        <div className="alert alert-warning" style={{ marginBottom: 16 }}>
+          <span>⚠️</span><span>Cloud sync issue: {errorHeader} — showing local data only.</span>
+        </div>
+      )}
 
       <div style={{ display:'flex', gap:12, marginBottom:20, flexWrap:'wrap' }}>
         <div className="search-bar" style={{ flex:1, minWidth:240 }}>
@@ -85,7 +115,7 @@ function AdminTenants() {
         <div className="card-header"><div className="card-title">All Tenants ({filtered.length})</div></div>
         <div className="table-wrap">
           <table className="data-table">
-            <thead><tr><th>Tenant Name</th><th>Domain</th><th>Plan</th><th>Franchises</th><th>Hotels</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Tenant Name</th><th>Domain</th><th>Plan</th><th>Hotels</th><th>Staff</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
             <tbody>
               {loading ? (
                 <tr><td colSpan={8} style={{ textAlign:'center', padding:40 }}>Connecting to Cloud...</td></tr>
@@ -93,15 +123,15 @@ function AdminTenants() {
                 <tr key={t.id}>
                   <td><strong>{t.name}</strong></td>
                   <td style={{ fontFamily:'monospace', fontSize:12, color:'var(--text-secondary)' }}>{t.domain}</td>
-                  <td><span className="badge badge-blue">Enterprise</span></td>
-                  <td>{t.franchises || 0}</td>
+                  <td><span className="badge badge-blue">{t.plan ?? 'Enterprise'}</span></td>
                   <td>{t.hotels || 0}</td>
-                  <td><span className={`badge badge-green`}>{t.status}</span></td>
+                  <td>{t.staff || 0}</td>
+                  <td><span className={`badge ${t.status==='active'?'badge-green':t.status==='trial'?'badge-orange':'badge-red'}`}>{t.status}</span></td>
                   <td style={{ fontSize:12, color:'var(--text-secondary)' }}>{t.created}</td>
                   <td>
                     <div style={{ display:'flex', gap:6 }}>
-                      <button className="btn btn-outline btn-sm">✏️</button>
-                      <button className="btn btn-outline btn-sm" style={{ color:'var(--danger)' }}>🗑</button>
+                      <button className="btn btn-outline btn-sm" title="Edit Tenant" onClick={() => openEdit(t)}>✏️</button>
+                      <button className="btn btn-outline btn-sm" title="Delete Tenant" style={{ color:'var(--danger)' }} onClick={() => handleDelete(t.id, t.name)}>🗑</button>
                     </div>
                   </td>
                 </tr>
@@ -118,7 +148,7 @@ function AdminTenants() {
         <div className="modal-backdrop" onClick={()=>setShowModal(false)}>
           <div className="modal" onClick={e=>e.stopPropagation()}>
             <div className="modal-header">
-              <div className="modal-title">➕ New Tenant</div>
+              <div className="modal-title">{editId ? '✏️ Edit Tenant' : '➕ New Tenant'}</div>
               <button className="btn btn-ghost" onClick={()=>setShowModal(false)}>✕</button>
             </div>
             <div className="modal-body" style={{ display:'flex', flexDirection:'column', gap:14 }}>
@@ -130,10 +160,12 @@ function AdminTenants() {
                 <label className="form-label">Domain</label>
                 <input className="form-input" placeholder="snsgrand.snshotels.com" value={form.domain} onChange={e=>setForm({...form,domain:e.target.value})}/>
               </div>
-              <div className="form-group">
-                <label className="form-label">Contact Email</label>
-                <input className="form-input" placeholder="owner@chain.com" type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/>
-              </div>
+              {!editId && (
+                <div className="form-group">
+                  <label className="form-label">Contact Email</label>
+                  <input className="form-input" placeholder="owner@chain.com" type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/>
+                </div>
+              )}
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
                 <div className="form-group">
                   <label className="form-label">Plan</label>
@@ -155,7 +187,7 @@ function AdminTenants() {
             </div>
             <div className="modal-footer">
               <button className="btn btn-outline" onClick={()=>setShowModal(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={handleCreate}>Create Global Tenant</button>
+              <button className="btn btn-primary" onClick={handleCreate}>{editId ? 'Save Changes' : 'Create Global Tenant'}</button>
             </div>
           </div>
         </div>

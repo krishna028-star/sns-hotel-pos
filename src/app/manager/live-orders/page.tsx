@@ -6,8 +6,11 @@ import { ACTIVE_ORDERS, PENDING_KOTS, formatCurrency } from '@/lib/mockData';
 const statusColor: Record<string, string> = { ready: '#00C48C', cooking: '#FF8A34', kot_sent: '#2E5AFF', bill_requested: '#9B59B6', pending: '#94A3B8' };
 const statusEmoji: Record<string, string> = { ready: '✅', cooking: '🔥', kot_sent: '📤', bill_requested: '🧾', pending: '⏳' };
 
+type Order = typeof ACTIVE_ORDERS[0];
+
 function LiveOrders() {
   const [orders] = useState(ACTIVE_ORDERS);
+  const [selected, setSelected] = useState<Order | null>(null);
 
   return (
     <DashboardLayout title="Live Orders Monitor">
@@ -34,7 +37,6 @@ function LiveOrders() {
         </div>
       </div>
 
-      {/* Pending KOTs Alert */}
       {PENDING_KOTS.length > 0 && (
         <div className="alarm-card" style={{ marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -70,11 +72,54 @@ function LiveOrders() {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, paddingTop: 10, borderTop: '1px solid #F1F5F9' }}>
               <span style={{ fontWeight: 800, fontSize: 16, color: '#2E5AFF' }}>{formatCurrency(o.total)}</span>
-              <button className="btn btn-outline btn-sm">View Details</button>
+              <button className="btn btn-outline btn-sm" onClick={() => setSelected(o)}>View Details</button>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Detail Modal */}
+      {selected && (
+        <div className="modal-backdrop" onClick={() => setSelected(null)}>
+          <div className="modal modal-lg" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">📋 Order Details — {selected.id}</div>
+              <button className="btn btn-ghost" onClick={() => setSelected(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+                {[
+                  ['Order ID', selected.id],
+                  ['Table', `Table ${selected.tableNum}`],
+                  ['Waiter', selected.worker],
+                  ['Status', selected.status.replace('_', ' ')],
+                  ['Order Time', selected.time],
+                  ['Total', formatCurrency(selected.total)],
+                ].map(([k, v]) => (
+                  <div key={String(k)} style={{ padding: 12, background: '#F4F6FB', borderRadius: 8 }}>
+                    <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600 }}>{k}</div>
+                    <div style={{ fontWeight: 700, marginTop: 2 }}>{v}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ fontWeight: 700, marginBottom: 10 }}>Order Items</div>
+              {selected.items.map((item: any, i: number) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #F1F5F9', fontSize: 14 }}>
+                  <span>{item.name} × {item.qty}</span>
+                  <strong style={{ color: '#2E5AFF' }}>{formatCurrency(item.price * item.qty)}</strong>
+                </div>
+              ))}
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12, padding: '12px 0', fontWeight: 800, fontSize: 18 }}>
+                <span>Total</span>
+                <span style={{ color: '#2E5AFF' }}>{formatCurrency(selected.total)}</span>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-outline" onClick={() => setSelected(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }
