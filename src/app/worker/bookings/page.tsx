@@ -4,14 +4,14 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { BOOKINGS } from '@/lib/mockData';
 
 function WorkerBookings() {
-  const [bookings, setBookings] = useState(BOOKINGS);
-  const [selected, setSelected] = useState<typeof BOOKINGS[0] | null>(null);
+  const { bookings } = useData();
+  const [selected, setSelected] = useState<any | null>(null);
 
-  const confirm = (id: string) => setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'confirmed' } : b));
-  const cancel = (id: string) => setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'cancelled' } : b));
+  const confirm = (id: string) => alert('Confirm logic here');
+  const cancel = (id: string) => alert('Cancel logic here');
 
-  const pending = bookings.filter(b => b.status === 'pending');
-  const confirmed = bookings.filter(b => b.status === 'confirmed');
+  const pending = bookings.filter((b: any) => b.status === 'pending');
+  const confirmed = bookings.filter((b: any) => b.status === 'confirmed');
 
   return (
     <DashboardLayout title="Table Bookings">
@@ -30,15 +30,14 @@ function WorkerBookings() {
         <div>
           <div style={{ fontWeight: 700, marginBottom: 10, color: '#FF8A34' }}>⏳ Pending Confirmation</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
-            {pending.map(b => (
+            {pending.map((b: any) => (
               <div key={b.id} className="alarm-card">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 800, fontSize: 15 }}>{b.customerName}</div>
                     <div style={{ fontSize: 13, color: '#64748B', marginTop: 4 }}>
-                      🪑 Table {b.tableNum} · 👥 {b.guests} Guests · 🕐 {b.time} · 📅 {b.date}
+                      🪑 Table {b.tableId} · 👥 {b.guestCount} Guests · 🕐 {new Date(b.bookingTime).toLocaleTimeString()} · 📅 {new Date(b.bookingTime).toLocaleDateString()}
                     </div>
-                    {b.preOrder && <span className="badge badge-purple" style={{ marginTop: 6 }}>Pre-Order Included</span>}
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button className="btn btn-secondary btn-sm" onClick={() => confirm(b.id)}>✅ Confirm</button>
@@ -56,16 +55,15 @@ function WorkerBookings() {
         <div className="card-header"><div className="card-title">All Bookings</div></div>
         <div className="table-wrap">
           <table className="data-table">
-            <thead><tr><th>Booking ID</th><th>Customer</th><th>Table</th><th>Date & Time</th><th>Guests</th><th>Pre-Order</th><th>Status</th></tr></thead>
+            <thead><tr><th>Booking ID</th><th>Customer</th><th>Table</th><th>Date & Time</th><th>Guests</th><th>Status</th></tr></thead>
             <tbody>
-              {bookings.map(b => (
+              {bookings.map((b: any) => (
                 <tr key={b.id}>
                   <td style={{ fontSize: 12 }}>{b.id}</td>
                   <td><strong>{b.customerName}</strong></td>
-                  <td>Table {b.tableNum}</td>
-                  <td style={{ fontSize: 12 }}>{b.date} {b.time}</td>
-                  <td>{b.guests}</td>
-                  <td>{b.preOrder ? <span className="badge badge-purple">Yes</span> : <span style={{ color: '#94A3B8' }}>No</span>}</td>
+                  <td>Table {b.tableId}</td>
+                  <td style={{ fontSize: 12 }}>{new Date(b.bookingTime).toLocaleString()}</td>
+                  <td>{b.guestCount}</td>
                   <td>
                     <span className={`badge ${b.status === 'confirmed' ? 'badge-green' : b.status === 'pending' ? 'badge-orange' : 'badge-red'}`}>{b.status}</span>
                   </td>

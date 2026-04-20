@@ -5,7 +5,7 @@ import { formatCurrency } from '@/lib/mockData';
 import { useData } from '@/lib/DataContext';
 
 function StockOverview() {
-  const { ingredients, addItem, updateItem, deleteItem } = useData();
+  const { ingredients, adjustStock } = useData();
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -19,21 +19,21 @@ function StockOverview() {
 
   const filtered = ingredients.filter((i: any) =>
     (categoryFilter === 'All' || i.category === categoryFilter) &&
-    (statusFilter === 'all' || i.status === statusFilter) &&
+    (statusFilter === 'all' || (i.stockQuantity <= i.reorderLevel ? 'low' : 'ok') === statusFilter) &&
     i.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  // BUG FIX: adjItem was declared AFTER applyAdjust used it (hoisting bug)
-  // Now declared first, before applyAdjust
-  const adjItem = adjModal;
-
-  const applyAdjust = () => {
-    if (!adjItem || !adjQty) return;
+  const applyAdjust = async () => {
+    if (!adjModal || !adjQty) return;
     const delta = parseFloat(adjQty);
     if (isNaN(delta)) return;
-    updateItem('ingredients', adjItem.id, { stock: Math.max(0, (adjItem.stock || 0) + delta) });
-    setAdjModal(null);
-    setAdjQty('');
+    const res = await adjustStock(adjModal.id, delta, adjReason);
+    if (res.ok) {
+      setAdjModal(null);
+      setAdjQty('');
+    } else {
+      alert('Failed: ' + res.error);
+    }
   };
 
   return (
@@ -72,29 +72,32 @@ function StockOverview() {
             </thead>
             <tbody>
               {filtered.map((i: any) => {
-                const pct = Math.min(100, ((i.stock || 0) / ((i.reorder || 1) * 2)) * 100);
+                const isLow = (i.stockQuantity || 0) <= (i.reorderLevel || 0);
+                const isCritical = (i.stockQuantity || 0) <= (i.reorderLevel || 0) / 2;
+                const status = isCritical ? 'critical' : isLow ? 'low' : 'ok';
+                const pct = Math.min(100, ((i.stockQuantity || 0) / ((i.reorderLevel || 1) * 2)) * 100);
                 return (
                   <tr key={i.id}>
                     <td><strong>{i.name}</strong></td>
                     <td><span className="badge badge-gray">{i.category}</span></td>
-                    <td><strong>{i.stock} {i.unit}</strong></td>
-                    <td style={{ color: '#94A3B8', fontSize: 12 }}>{i.reorder} {i.unit}</td>
+                    <td><strong>{i.stockQuantity} {i.unit}</strong></td>
+                    <td style={{ color: '#94A3B8', fontSize: 12 }}>{i.reorderLevel} {i.unit}</td>
                     <td>
                       <div className="stock-bar">
-                        <div className={`stock-fill stock-${i.status}`} style={{ width: `${pct}%` }} />
+                        <div className={`stock-fill stock-${status}`} style={{ width: `${pct}%` }} />
                       </div>
                     </td>
                     <td style={{ fontSize: 12 }}>₹{i.unitCost}/{i.unit}</td>
-                    <td><strong style={{ color: '#00C48C' }}>{formatCurrency(i.stock * i.unitCost)}</strong></td>
+                    <td><strong style={{ color: '#00C48C' }}>{formatCurrency(i.stockQuantity * i.unitCost)}</strong></td>
                     <td>
-                      <span className={`badge ${i.status === 'critical' ? 'badge-red' : i.status === 'low' ? 'badge-orange' : 'badge-green'}`}>
-                        {i.status === 'critical' ? '🔴 Critical' : i.status === 'low' ? '🟡 Low' : '✅ OK'}
+                      <span className={`badge ${status === 'critical' ? 'badge-red' : status === 'low' ? 'badge-orange' : 'badge-green'}`}>
+                        {status === 'critical' ? '🔴 Critical' : status === 'low' ? '🟡 Low' : '✅ OK'}
                       </span>
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: 4 }}>
                         <button className="btn btn-outline btn-sm" onClick={() => setAdjModal(i)}>Adjust</button>
-                        <button className="btn btn-ghost btn-sm" style={{ color: '#FF3B30' }} onClick={() => deleteItem('ingredients', i.id)}>✕</button>
+                        <button className="btn btn-ghost btn-sm" style={{ color: '#FF3B30' }} onClick={() => console.log('Delete disabled')}>✕</button>
                       </div>
                     </td>
                   </tr>
@@ -115,7 +118,7 @@ function StockOverview() {
             <div className="modal-body">
               <div style={{ padding: 12, background: '#F4F6FB', borderRadius: 8, marginBottom: 16 }}>
                 <div style={{ fontSize: 12, color: '#64748B' }}>Current Stock</div>
-                <div style={{ fontWeight: 800, fontSize: 20 }}>{adjModal.stock} {adjModal.unit}</div>
+                <div style={{ fontWeight: 800, fontSize: 20 }}>{adjModal.stockQuantity} {adjModal.unit}</div>
               </div>
               <div className="form-group" style={{ marginBottom: 12 }}>
                 <label className="form-label">Adjustment (+ to add, - to deduct)</label>

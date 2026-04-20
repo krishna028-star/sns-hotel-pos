@@ -14,17 +14,17 @@ const ORDER_ITEMS: Record<string, {name:string;qty:number;price:number}[]> = {
 function CashierPending() {
   const { notify } = useNotifications();
   const router = useRouter();
-  const { activeOrders, updateItem } = useData();
+  const { activeOrders, processPayment } = useData();
 
-  const pendingOrders = activeOrders.filter((o: any) => o.status === 'bill_requested');
+  const pendingOrders = activeOrders.filter((o: any) => o.status === 'bill_requested' || o.status === 'served');
   const payments = pendingOrders.map((o: any) => ({
     id: o.id,
     orderId: o.id,
-    tableNum: o.tableNum,
-    customerName: o.worker || 'Walk-in',
-    amount: o.total || 0,
+    tableNum: o.table?.number || '?',
+    customerName: o.worker?.name || 'Waitstaff',
+    amount: o.totalAmount || 0,
     method: 'cash',
-    time: o.time,
+    time: new Date(o.createdAt).toLocaleTimeString(),
     items: o.items || []
   }));
 
@@ -32,13 +32,19 @@ function CashierPending() {
   const [cashReceived, setCashReceived] = useState('');
   const [viewOrder, setViewOrder] = useState<any | null>(null);
 
-  const acceptCash = () => {
+  const acceptCash = async () => {
     if (!cashModal) return;
-    updateItem('activeOrders', cashModal.orderId, { status: 'paid' });
-    updateItem('tables', activeOrders.find((x: any) => x.id === cashModal.orderId)?.tableNum, { status: 'free' });
-    notify('payment', `💰 Cash payment of ${formatCurrency(cashModal.amount)} accepted — Table ${cashModal.tableNum}`);
-    setCashModal(null);
-    setCashReceived('');
+    const res = await processPayment(cashModal.orderId, {
+      amount: cashModal.amount,
+      method: 'cash'
+    });
+    if (res.ok) {
+      notify('payment', `💰 Cash payment of ${formatCurrency(cashModal.amount)} accepted — Table ${cashModal.tableNum}`);
+      setCashModal(null);
+      setCashReceived('');
+    } else {
+      alert('Failed: ' + res.error);
+    }
   };
 
   const change = cashModal ? Math.max(0, parseFloat(cashReceived || '0') - cashModal.amount) : 0;

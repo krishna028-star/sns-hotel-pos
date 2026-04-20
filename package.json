@@ -46,5 +46,8 @@
     "jest-environment-jsdom": "^29.7.0",
     "prisma": "^6.5.0",
     "typescript": "^5"
+  },
+  "prisma": {
+    "seed": "npx ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   }
 }

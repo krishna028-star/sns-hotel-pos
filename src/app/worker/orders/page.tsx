@@ -8,11 +8,11 @@ const statusColor: Record<string, string> = { ready: '#00C48C', cooking: '#FF8A3
 const statusEmoji: Record<string, string> = { ready: '✅', cooking: '🔥', kot_sent: '📤', bill_requested: '🧾', pending: '⏳' };
 
 function WorkerOrders() {
-  const { activeOrders, updateItem } = useData();
+  const { activeOrders, updateOrderStatus } = useData();
   const orders = activeOrders.filter((o: any) => o.status !== 'paid');
 
-  const requestBill = (id: string) => updateItem('activeOrders', id, { status: 'bill_requested' });
-  const markServed = (id: string) => updateItem('activeOrders', id, { status: 'served' }); // Unused in this UI directly but good logic
+  const requestBill = (id: string, version: number) => updateOrderStatus(id, 'bill_requested', version);
+  const markServed = (id: string, version: number) => updateOrderStatus(id, 'served', version);
 
   return (
     <DashboardLayout title="Active Orders">
@@ -52,10 +52,10 @@ function WorkerOrders() {
               {/* Header */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 10, background: statusColor[o.status] + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, color: statusColor[o.status], fontSize: 18 }}>T{o.tableNum}</div>
+                  <div style={{ width: 44, height: 44, borderRadius: 10, background: statusColor[o.status] + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, color: statusColor[o.status], fontSize: 18 }}>T{o.table?.number || '?'}</div>
                   <div>
                     <div style={{ fontWeight: 700, fontSize: 14 }}>{o.id}</div>
-                    <div style={{ fontSize: 11, color: '#94A3B8' }}>👤 {o.worker}</div>
+                    <div style={{ fontSize: 11, color: '#94A3B8' }}>👤 {o.worker?.name || 'Staff'}</div>
                   </div>
                 </div>
                 <span style={{ fontSize: 12, fontWeight: 700, color: statusColor[o.status], background: statusColor[o.status] + '15', padding: '4px 12px', borderRadius: 12 }}>{statusEmoji[o.status]} {o.status.replace(/_/g, ' ')}</span>
@@ -63,7 +63,7 @@ function WorkerOrders() {
 
               {/* Items */}
               <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: 10, marginBottom: 12 }}>
-                {o.items.map((item, i) => (
+                {o.items.map((item: any, i: number) => (
                   <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: '4px 0' }}>
                     <span>{item.name} × {item.qty}</span>
                     <span style={{ fontWeight: 600 }}>{formatCurrency(item.price * item.qty)}</span>
@@ -73,9 +73,9 @@ function WorkerOrders() {
 
               {/* Footer */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #F1F5F9', paddingTop: 10 }}>
-                <span style={{ fontWeight: 800, fontSize: 16, color: '#2E5AFF' }}>{formatCurrency(o.total)}</span>
+                <span style={{ fontWeight: 800, fontSize: 16, color: '#2E5AFF' }}>{formatCurrency(o.totalAmount)}</span>
                 <div style={{ display: 'flex', gap: 6 }}>
-                  {o.status === 'ready' && <button className="btn btn-secondary btn-sm" onClick={() => requestBill(o.id)}>🧾 Request Bill</button>}
+                  {o.status === 'ready' && <button className="btn btn-secondary btn-sm" onClick={() => requestBill(o.id, o.version)}>🧾 Request Bill</button>}
                   {o.status === 'bill_requested' && <button className="btn btn-ghost btn-sm" style={{ color: '#9B59B6' }}>⏳ Awaiting Cashier</button>}
                   {(o.status === 'cooking' || o.status === 'kot_sent') && <button className="btn btn-ghost btn-sm" style={{ color: '#64748B' }}>⏳ Kitchen Cooking</button>}
                 </div>

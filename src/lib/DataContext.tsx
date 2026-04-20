@@ -1,6 +1,7 @@
 'use client';
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import * as mock from '@/lib/mockData';
+import { useAuth } from './auth';
+import * as actions from '@/app/actions/posActions';
 
 interface DataCtx {
   tenants: any[];
@@ -15,110 +16,119 @@ interface DataCtx {
   theftReports: any[];
   purchaseOrders: any[];
   
-  // CRUD Actions
-  addItem: (key: string, item: any) => void;
-  updateItem: (key: string, id: any, updates: any) => void;
-  deleteItem: (key: string, id: any) => void;
+  refreshData: () => Promise<void>;
   
-  // Specific complex actions if needed
-  markKOTReady: (id: string | number) => void;
-  cancelBooking: (id: string | number) => void;
+  // CRUD Actions (Now DB backed)
+  addTable: (data: any) => Promise<any>;
+  createOrder: (data: any) => Promise<any>;
+  updateOrderStatus: (id: string, status: string, version: number) => Promise<any>;
+  adjustStock: (itemId: string, change: number, reason: string) => Promise<any>;
+  processPayment: (orderId: string, data: any) => Promise<any>;
 }
 
 const DataContext = createContext<DataCtx | null>(null);
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
-  const [data, setData] = useState({
-    tenants: mock.TENANTS,
-    hotels: mock.HOTELS,
-    menuItems: mock.MENU_ITEMS,
-    tables: mock.TABLES,
-    ingredients: mock.INGREDIENTS,
-    suppliers: [
-      { id: 1, name: 'Fresh Foods Co.', contact: 'Ravi Kumar',  phone: '+91 94001 12345', email: 'ravi@freshfoods.com',  categories: 'Meat, Poultry',          rating: 4.5, status: 'active', lastOrder: '2025-04-16' },
-      { id: 2, name: 'Dairy Direct',    contact: 'Meena Shah',  phone: '+91 98001 67890', email: 'meena@dairydirect.com', categories: 'Dairy, Eggs',             rating: 4.8, status: 'active', lastOrder: '2025-04-15' },
-      { id: 3, name: 'Veggie World',    contact: 'Suresh Iyer', phone: '+91 96001 34567', email: 'suresh@veggieworld.com', categories: 'Vegetables, Fruits',     rating: 4.2, status: 'active', lastOrder: '2025-04-14' },
-      { id: 4, name: 'Spice Garden',    contact: 'Priya Nair',  phone: '+91 97001 56789', email: 'priya@spicegarden.com', categories: 'Spices, Condiments',     rating: 4.6, status: 'active', lastOrder: '2025-04-13' },
-    ],
-    activeOrders: mock.ACTIVE_ORDERS,
-    pendingKots: mock.PENDING_KOTS,
-    bookings: mock.BOOKINGS,
-    theftReports: mock.THEFT_REPORTS,
-    purchaseOrders: mock.PURCHASE_ORDERS,
+  const { user } = useAuth();
+  const [state, setState] = useState({
+    tenants: [],
+    hotels: [],
+    menuItems: [],
+    tables: [],
+    ingredients: [],
+    suppliers: [],
+    activeOrders: [],
+    pendingKots: [],
+    bookings: [],
+    theftReports: [],
+    purchaseOrders: [],
+    auditLogs: [],
+    metrics: { tenants: 0, users: 0, orders: 0, totalRevenue: 0 }
   });
 
-  const [isLoaded, setIsLoaded] = useState(false);
+  const refreshData = useCallback(async () => {
+    if (!user) return;
 
-  // Persistence to localStorage for "instant" feel that lasts across refreshes
-  useEffect(() => {
-    const stored = localStorage.getItem('sns_pos_data');
-    if (stored) {
-      try {
-        setData(prev => ({ ...prev, ...JSON.parse(stored) }));
-      } catch (e) {
-        console.error('Failed to load storage', e);
-      }
+    const data: any = { ...state };
+
+    if (user.role === 'main_admin' || user.role === 'main_client') {
+      const tenantsRes = await actions.fetchTenants();
+      if (tenantsRes.ok) data.tenants = tenantsRes.tenants;
+      
+      const adminLogs = await actions.fetchAuditLogs(20);
+      if (adminLogs.ok) data.auditLogs = adminLogs.logs;
+
+      const metricsRes = await actions.fetchGlobalMetrics();
+      if (metricsRes.ok) data.metrics = metricsRes.metrics;
     }
-    setIsLoaded(true);
-  }, []);
+
+    if (user.hotelId) {
+      const tablesRes = await actions.fetchTables(user.hotelId as string);
+      if (tablesRes.ok) data.tables = tablesRes.tables;
+      
+      const inventoryRes = await actions.fetchInventory(user.hotelId as string);
+      if (inventoryRes.ok) data.ingredients = inventoryRes.items;
+
+      const ordersRes = await actions.fetchOrders(user.hotelId as string);
+      if (ordersRes.ok) data.activeOrders = ordersRes.orders;
+
+      const bookingsRes = await actions.fetchBookings(user.hotelId as string);
+      if (bookingsRes.ok) data.bookings = bookingsRes.bookings;
+      
+      // ... fetch other hotel-specific data
+    }
+    
+    setState(data);
+  }, [user]);
 
   useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('sns_pos_data', JSON.stringify(data));
-    }
-  }, [data, isLoaded]);
+    refreshData();
+  }, [refreshData]);
 
-  const addItem = useCallback((key: string, item: any) => {
-    setData(prev => ({
-      ...prev,
-      // @ts-ignore
-      [key]: [{ ...item, id: item.id || Date.now() }, ...prev[key]]
-    }));
-  }, []);
+  const addTable = async (data: any) => {
+    if (!user) return { ok: false, error: 'Auth required' };
+    const res = await actions.createTable(user.id as string, { ...data, hotelId: user.hotelId });
+    if (res.ok) refreshData();
+    return res;
+  };
 
-  const updateItem = useCallback((key: string, id: any, updates: any) => {
-    setData(prev => ({
-      ...prev,
-      // @ts-ignore
-      [key]: prev[key].map(i => (i.id === id ? { ...i, ...updates } : i))
-    }));
-  }, []);
+  const createOrder = async (data: any) => {
+    if (!user) return { ok: false, error: 'Auth required' };
+    const res = await actions.createOrder(user.id as string, { ...data, hotelId: user.hotelId });
+    if (res.ok) refreshData();
+    return res;
+  };
 
-  const deleteItem = useCallback((key: string, id: any) => {
-    setData(prev => ({
-      ...prev,
-      // @ts-ignore
-      [key]: prev[key].filter(i => i.id !== id)
-    }));
-  }, []);
+  const updateOrderStatus = async (id: string, status: string, version: number) => {
+    if (!user) return { ok: false, error: 'Auth required' };
+    const res = await actions.updateOrderStatus(user.id as string, id, status, version);
+    if (res.ok) refreshData();
+    return res;
+  };
 
-  const markKOTReady = useCallback((id: string | number) => {
-    setData(prev => ({
-      ...prev,
-      pendingKots: prev.pendingKots.filter(k => k.id !== id),
-      // In a real app, this might move to a "ready" list or notify activeOrders
-      activeOrders: prev.activeOrders.map(o => {
-        // Find order associated with this KOT if any
-        return o; 
-      })
-    }));
-  }, []);
+  const adjustStock = async (itemId: string, change: number, reason: string) => {
+    if (!user) return { ok: false, error: 'Auth required' };
+    const res = await actions.adjustStock(user.id as string, itemId, change, reason);
+    if (res.ok) refreshData();
+    return res;
+  };
 
-  const cancelBooking = useCallback((id: string | number) => {
-    setData(prev => ({
-      ...prev,
-      bookings: prev.bookings.map(b => b.id === id ? { ...b, status: 'cancelled' } : b)
-    }));
-  }, []);
+  const processPayment = async (orderId: string, data: any) => {
+    if (!user) return { ok: false, error: 'Auth required' };
+    const res = await actions.processPayment(user.id as string, orderId, data);
+    if (res.ok) refreshData();
+    return res;
+  };
 
   const value = useMemo(() => ({
-    ...data,
-    addItem,
-    updateItem,
-    deleteItem,
-    markKOTReady,
-    cancelBooking
-  }), [data, addItem, updateItem, deleteItem, markKOTReady, cancelBooking]);
+    ...state,
+    refreshData,
+    addTable,
+    createOrder,
+    updateOrderStatus,
+    adjustStock,
+    processPayment
+  }), [state, refreshData]);
 
   return (
     <DataContext.Provider value={value}>

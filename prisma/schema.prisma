@@ -29,11 +29,33 @@ model Tenant {
   name        String   @unique
   domain      String?  @unique
   logo        String?
+  plan        String?  @default("basic") // basic, professional, enterprise
+  status      String?  @default("active")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
   users       User[]
+  franchises  Franchise[]
   hotels      Hotel[]
+  policies    Policy[]
+}
+
+// ── Franchise (Regional Groups) ───────────────────────────────────────
+model Franchise {
+  id          String   @id @default(cuid())
+  name        String
+  revenue     Decimal? @db.Decimal(10, 2) @default(0)
+  status      String   @default("active")
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  
+  headUserId  String?
+  headUser    User?    @relation("FranchiseHead", fields: [headUserId], references: [id])
+  
+  hotels      Hotel[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 // ── Hotel / Branch ───────────────────────────────────────────────────
@@ -45,10 +67,15 @@ model Hotel {
   tenantId    String
   tenant      Tenant   @relation(fields: [tenantId], references: [id])
   
+  franchiseId String?
+  franchise   Franchise? @relation(fields: [franchiseId], references: [id])
+  
   tables      Table[]
   orders      Order[]
   staff       User[]   @relation("HotelStaff")
   inventory   InventoryItem[]
+  bookings    Booking[]
+  purchaseOrders PurchaseOrder[]
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -70,6 +97,8 @@ model User {
   hotelId       String?
   hotel         Hotel?   @relation("HotelStaff", fields: [hotelId], references: [id])
   
+  headOfFranchise Franchise[] @relation("FranchiseHead")
+  
   // HR & Security Details
   staffId       String?  @unique // Unique Role/Staff ID (e.g. SNS-WKR-101)
   age           Int?
@@ -82,6 +111,7 @@ model User {
   auditLogs     AuditLog[]
   orders        Order[]  @relation("CustomerOrders")
   takenOrders   Order[]  @relation("WaiterOrders")
+  shifts        CashierShift[]
   
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -91,6 +121,7 @@ model User {
 model Table {
   id        String      @id @default(cuid())
   number    String
+  floor     String?
   capacity  Int
   status    TableStatus @default(free)
   hotelId   String
@@ -106,28 +137,29 @@ enum TableStatus {
 }
 
 model Order {
-  id          String      @id @default(cuid())
-  status      OrderStatus @default(pending)
-  totalAmount Decimal     @db.Decimal(10, 2)
+  id           String      @id @default(cuid())
+  status       OrderStatus @default(pending)
+  totalAmount  Decimal     @db.Decimal(10, 2)
+  version      Int         @default(0)
   
-  tableId     String?
-  table       Table?      @relation(fields: [tableId], references: [id])
+  tableId      String?
+  table        Table?      @relation(fields: [tableId], references: [id])
   
-  hotelId     String
-  hotel       Hotel       @relation(fields: [hotelId], references: [id])
+  hotelId      String
+  hotel        Hotel       @relation(fields: [hotelId], references: [id])
   
-  customerId  String?
-  customer    User?       @relation("CustomerOrders", fields: [customerId], references: [id])
+  customerId   String?
+  customer     User?       @relation("CustomerOrders", fields: [customerId], references: [id])
   
-  waiterId    String?
-  waiter      User?       @relation("WaiterOrders", fields: [waiterId], references: [id])
+  waiterId     String?
+  waiter       User?       @relation("WaiterOrders", fields: [waiterId], references: [id])
   
-  items       OrderItem[]
-  kots        KOT[]
-  payments    Payment[]
+  items        OrderItem[]
+  kots         KOT[]
+  payments     Payment[]
   
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 }
 
 enum OrderStatus {
@@ -168,7 +200,24 @@ enum KOTStatus {
   collected
 }
 
-// ── Inventory & Theft ───────────────────────────────────────────────
+// ── Bookings ─────────────────────────────────────────────────────────
+model Booking {
+  id           String   @id @default(cuid())
+  customerName String
+  phoneNumber  String?
+  tableNum     String?
+  date         DateTime
+  time         String
+  guests       Int
+  status       String   @default("pending") // pending, confirmed, cancelled
+  preOrder     Boolean  @default(false)
+  hotelId      String
+  hotel        Hotel    @relation(fields: [hotelId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// ── Inventory & Procurement ──────────────────────────────────────────
 model InventoryItem {
   id            String   @id @default(cuid())
   name          String
@@ -177,6 +226,7 @@ model InventoryItem {
   unit          String
   unitCost      Decimal  @db.Decimal(10, 2)
   reorderLevel  Decimal  @db.Decimal(10, 3)
+  version       Int      @default(0)
   
   hotelId       String
   hotel         Hotel    @relation(fields: [hotelId], references: [id])
@@ -184,6 +234,33 @@ model InventoryItem {
   theftReports  TheftReport[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+model Supplier {
+  id          String   @id @default(cuid())
+  name        String
+  contact     String?
+  phone       String?
+  email       String?
+  categories  String?
+  rating      Float?
+  status      String   @default("active")
+  purchaseOrders PurchaseOrder[]
+}
+
+model PurchaseOrder {
+  id          String   @id @default(cuid())
+  supplierId  String
+  supplier    Supplier @relation(fields: [supplierId], references: [id])
+  hotelId     String
+  hotel       Hotel    @relation(fields: [hotelId], references: [id])
+  itemsCount  Int
+  amount      Decimal  @db.Decimal(10, 2)
+  status      String   @default("pending_approval")
+  date        DateTime @default(now())
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model TheftReport {
@@ -206,6 +283,7 @@ model Payment {
   method        PaymentMethod
   status        String        @default("pending") // pending, completed, failed
   transactionId String?
+  version       Int           @default(0)
   createdAt     DateTime      @default(now())
 }
 
@@ -214,6 +292,32 @@ enum PaymentMethod {
   upi
   card
   app_wallet
+}
+
+model CashierShift {
+  id             String    @id @default(cuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id])
+  startTime      DateTime  @default(now())
+  endTime        DateTime?
+  startingCash   Decimal   @db.Decimal(10, 2)
+  endingCash     Decimal?  @db.Decimal(10, 2)
+  difference     Decimal?  @db.Decimal(10, 2)
+  notes          String?
+  status         String    @default("open") // open, closed
+}
+
+// ── Policies & Configuration ─────────────────────────────────────────
+model Policy {
+  id        String   @id @default(cuid())
+  name      String
+  value     String
+  scope     String   @default("hotel") // hotel, franchise, tenant
+  status    String   @default("active")
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // ── System Integrity ────────────────────────────────────────────────

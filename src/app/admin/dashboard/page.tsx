@@ -9,15 +9,13 @@ import Link from 'next/link';
 
 function AdminDash() {
   const { users } = useAuth();
-  const { tenants } = useData();
+  const { tenants, auditLogs, metrics } = useData();
 
-  const metrics = [
-    { label: 'Global Revenue (Today)', value: formatCurrency(SALES_TREND.reduce((a, b) => a + b.revenue, 0)), trend: '↑ 14%', icon: '💰', color: '#2E5AFF', bg: '#e8edff' },
-    { label: 'Active Tenants', value: String(tenants.length || 0), trend: 'Add via Tenants', icon: '🏢', color: '#1ABC9C', bg: '#e8fdf7' },
-    { label: 'Total Orders', value: '1,248', trend: 'Across all hotels', icon: '📋', color: '#FF8A34', bg: '#fff3e8' },
-    { label: 'Low Stock Alerts', value: '0', trend: 'Add inventory', icon: '⚠️', color: '#FF3B30', bg: '#fff0ef' },
-    { label: 'Active Theft Reports', value: '0', trend: 'All clear', icon: '🚨', color: '#9B59B6', bg: '#f3eeff' },
-    { label: 'System Users', value: String(users.length), trend: 'Registered accounts', icon: '👥', color: '#F39C12', bg: '#fffbec' },
+  const dashMetrics = [
+    { label: 'Global Revenue (Today)', value: formatCurrency(metrics.totalRevenue), trend: 'Real-time', icon: '💰', color: '#2E5AFF', bg: '#e8edff' },
+    { label: 'Active Tenants', value: String(metrics.tenants), trend: 'Primary Clients', icon: '🏢', color: '#1ABC9C', bg: '#e8fdf7' },
+    { label: 'Total Orders', value: String(metrics.orders), trend: 'Across all hotels', icon: '📋', color: '#FF8A34', bg: '#fff3e8' },
+    { label: 'System Users', value: String(metrics.users), trend: 'Registered accounts', icon: '👥', color: '#F39C12', bg: '#fffbec' },
   ];
 
   return (
@@ -37,7 +35,7 @@ function AdminDash() {
 
       {/* Metrics */}
       <div className="metrics-grid">
-        {metrics.map(m => (
+        {dashMetrics.map(m => (
           <div className="metric-card" key={m.label}>
             <div className="metric-icon" style={{ background: m.bg, color: m.color }}>{m.icon}</div>
             <div className="metric-label">{m.label}</div>
@@ -133,19 +131,18 @@ function AdminDash() {
         </div>
         <div className="table-wrap">
           <table className="data-table">
-            <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Resource</th><th>Tenant</th><th>Severity</th></tr></thead>
+            <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Resource</th><th>Severity</th></tr></thead>
             <tbody>
-              {AUDIT_LOGS.length === 0 ? (
-                <tr><td colSpan={6} style={{ textAlign: 'center', padding: 32, color: '#94A3B8', fontSize: 13 }}>No audit logs yet. Actions by users will appear here.</td></tr>
+              {auditLogs.length === 0 ? (
+                <tr><td colSpan={5} style={{ textAlign: 'center', padding: 32, color: '#94A3B8', fontSize: 13 }}>No audit logs yet. Actions by users will appear here.</td></tr>
               ) : (
-                AUDIT_LOGS.slice(0, 5).map(log => (
+                auditLogs.slice(0, 5).map((log: any) => (
                   <tr key={log.id}>
-                    <td style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{new Date(log.timestamp).toLocaleTimeString()}</td>
-                    <td><strong>{log.user}</strong><br /><span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{log.role}</span></td>
+                    <td style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{new Date(log.createdAt).toLocaleTimeString()}</td>
+                    <td><strong>{log.user?.name || log.userId}</strong><br /><span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{log.user?.role}</span></td>
                     <td><span className="badge badge-gray">{log.action}</span></td>
-                    <td style={{ fontSize: 12 }}>{log.resource} #{log.resourceId}</td>
-                    <td style={{ fontSize: 12 }}>{log.tenant}</td>
-                    <td><span className={`badge ${log.severity === 'critical' ? 'badge-red' : log.severity === 'warning' ? 'badge-orange' : 'badge-green'}`}>{log.severity}</span></td>
+                    <td style={{ fontSize: 12 }}>{log.entity} #{log.entityId}</td>
+                    <td><span className="badge badge-green">info</span></td>
                   </tr>
                 ))
               )}

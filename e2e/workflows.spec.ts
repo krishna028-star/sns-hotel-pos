@@ -3,9 +3,11 @@ import { test, expect, Page } from '@playwright/test';
 async function loginAs(page: Page, email: string, password: string) {
   await page.goto('/login');
   await page.waitForLoadState('networkidle');
-  await page.fill('input[type="email"], input[placeholder*="email" i]', email);
-  await page.fill('input[type="password"]', password);
-  await page.click('button[type="submit"], button:has-text("Sign In"), button:has-text("Login")');
+  const userField = page.locator('input[placeholder*="Staff ID" i], input[placeholder*="SNS-" i], input[placeholder*="e.g." i]').first();
+  const passField = page.locator('input[type="password"]').first();
+  await userField.fill(email);
+  await passField.fill(password);
+  await page.click('button[type="submit"], button:has-text("Sign In")');
   await page.waitForLoadState('networkidle');
 }
 

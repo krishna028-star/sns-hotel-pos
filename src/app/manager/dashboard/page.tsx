@@ -9,16 +9,18 @@ const statusColor: Record<string, string> = { ready: '#00C48C', cooking: '#FF8A3
 const statusLabel: Record<string, string> = { ready: '✅ Ready', cooking: '🔥 Cooking', kot_sent: '📤 KOT Sent', bill_requested: '🧾 Bill Req.', pending: '⏳ Pending' };
 
 import { useData } from '@/lib/DataContext';
+import { useAuth } from '@/lib/auth';
 
 function ManagerDash() {
   const router = useRouter();
+  const { users } = useAuth();
   const { tables, activeOrders, pendingKots } = useData();
   
   const occupied = tables.filter((t: any) => t.status === 'occupied').length;
   const free = tables.filter((t: any) => t.status === 'free').length;
   const reserved = tables.filter((t: any) => t.status === 'reserved').length;
-  const totalRev = activeOrders.reduce((a: any, b: any) => a + b.total, 0);
-  const hotelStaff = ['Vijay Kumar', 'Chef Ravi', 'Anita Rao'];
+  const totalRev = activeOrders.reduce((a: number, b: any) => a + (b.totalAmount || 0), 0);
+  const hotelStaffCount = users.filter((u: any) => u.hotelId).length;
 
   return (
     <DashboardLayout title="Hotel Manager Dashboard">

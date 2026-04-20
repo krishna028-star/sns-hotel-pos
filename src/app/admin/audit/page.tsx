@@ -4,14 +4,17 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { AUDIT_LOGS } from '@/lib/mockData';
 
 function AdminAudit() {
+  const { auditLogs, metrics } = useData();
   const [search, setSearch] = useState('');
   const [severity, setSeverity] = useState('all');
   const [action, setAction] = useState('all');
 
-  const filtered = AUDIT_LOGS.filter(l =>
-    (severity === 'all' || l.severity === severity) &&
+  const filtered = auditLogs.filter((l: any) =>
+    (severity === 'all' || 'info' === severity) &&
     (action === 'all' || l.action === action) &&
-    (l.user.toLowerCase().includes(search.toLowerCase()) || l.action.toLowerCase().includes(search.toLowerCase()) || l.resource.toLowerCase().includes(search.toLowerCase()))
+    ((l.user?.name || '').toLowerCase().includes(search.toLowerCase()) || 
+     l.action.toLowerCase().includes(search.toLowerCase()) || 
+     l.entity.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
@@ -55,10 +58,10 @@ function AdminAudit() {
 
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 20 }}>
         {[
-          { label: 'Total Entries', value: '12,450', icon: '📋', color: '#2E5AFF', bg: '#e8edff' },
-          { label: 'Critical', value: AUDIT_LOGS.filter(l => l.severity === 'critical').length, icon: '🔴', color: '#FF3B30', bg: '#fff0ef' },
-          { label: 'Warnings', value: AUDIT_LOGS.filter(l => l.severity === 'warning').length, icon: '🟡', color: '#FF8A34', bg: '#fff3e8' },
-          { label: 'Info', value: AUDIT_LOGS.filter(l => l.severity === 'info').length, icon: '🟢', color: '#00C48C', bg: '#e0faf3' },
+          { label: 'Total Entries', value: String(auditLogs.length), icon: '📋', color: '#2E5AFF', bg: '#e8edff' },
+          { label: 'Critical', value: '0', icon: '🔴', color: '#FF3B30', bg: '#fff0ef' },
+          { label: 'Warnings', value: '0', icon: '🟡', color: '#FF8A34', bg: '#fff3e8' },
+          { label: 'Info', value: String(auditLogs.length), icon: '🟢', color: '#00C48C', bg: '#e0faf3' },
         ].map(m => (
           <div className="metric-card" key={m.label}>
             <div className="metric-icon" style={{ background: m.bg, color: m.color }}>{m.icon}</div>
@@ -79,31 +82,31 @@ function AdminAudit() {
               <tr>
                 <th>Timestamp</th>
                 <th>User</th>
-                <th>Tenant</th>
                 <th>Action</th>
-                <th>Resource</th>
-                <th>IP Address</th>
+                <th>Entity</th>
+                <th>Details</th>
                 <th>Severity</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map(log => (
+              {filtered.map((log: any) => (
                 <tr key={log.id}>
                   <td style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--text-secondary)' }}>
-                    {new Date(log.timestamp).toLocaleString('en-IN')}
+                    {new Date(log.createdAt).toLocaleString('en-IN')}
                   </td>
                   <td>
-                    <strong style={{ fontSize: 13 }}>{log.user}</strong><br />
-                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{log.role}</span>
+                    <strong style={{ fontSize: 13 }}>{log.user?.name || log.userId}</strong><br />
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{log.user?.role}</span>
                   </td>
-                  <td style={{ fontSize: 12 }}>{log.tenant}</td>
                   <td><span className="badge badge-gray" style={{ fontFamily: 'monospace' }}>{log.action}</span></td>
-                  <td style={{ fontSize: 12 }}>{log.resource} <span style={{ color: 'var(--text-muted)' }}>#{log.resourceId}</span></td>
-                  <td style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--text-muted)' }}>{log.ip}</td>
+                  <td style={{ fontSize: 12 }}>{log.entity} <span style={{ color: 'var(--text-muted)' }}>#{log.entityId}</span></td>
                   <td>
-                    <span className={`badge ${log.severity === 'critical' ? 'badge-red' : log.severity === 'warning' ? 'badge-orange' : 'badge-green'}`}>
-                      {log.severity}
-                    </span>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {JSON.stringify(log.newData)}
+                    </div>
+                  </td>
+                  <td>
+                    <span className="badge badge-green">info</span>
                   </td>
                 </tr>
               ))}
