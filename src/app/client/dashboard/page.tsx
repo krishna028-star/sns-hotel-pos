@@ -7,7 +7,11 @@ import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContai
 import Link from 'next/link';
 
 function ClientDash() {
-  const { hotels, activeOrders, theftReports } = useData();
+  const { hotels = [], activeOrders = [], theftReports = [] } = useData();
+
+  const safeHotels = Array.isArray(hotels) ? hotels : [];
+  const safeOrders = Array.isArray(activeOrders) ? activeOrders : [];
+  const safeThefts = Array.isArray(theftReports) ? theftReports : [];
 
   return (
     <DashboardLayout title="Main Client Dashboard">
@@ -15,7 +19,7 @@ function ClientDash() {
         <div style={{ fontSize: 40 }}>🏢</div>
         <div>
           <div style={{ color: '#fff', fontSize: 20, fontWeight: 800 }}>SNS Grand Hotels — Chain Overview</div>
-          <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginTop: 4 }}>4 Franchises · {hotels.length} Hotels · All reporting live</div>
+          <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginTop: 4 }}>4 Franchises · {safeHotels.length} Hotels · All reporting live</div>
         </div>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
           <Link href="/client/sales"><button className="btn btn-primary btn-sm">📊 Sales</button></Link>
@@ -26,9 +30,9 @@ function ClientDash() {
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>
         {[
           { label: 'Chain Revenue (MTD)', value: '₹16L', trend: '↑ 14%', icon: '💰', color: '#1ABC9C', bg: '#e8fdf7' },
-          { label: 'Total Orders', value: String(4220 + activeOrders.length), trend: '↑ 9%', icon: '📋', color: '#2E5AFF', bg: '#e8edff' },
-          { label: 'Active Hotels', value: String(hotels.length), trend: 'Across 4 regions', icon: '🏨', color: '#FF8A34', bg: '#fff3e8' },
-          { label: 'Theft Reports', value: String(theftReports.length), trend: 'Needs attention', icon: '🚨', color: '#FF3B30', bg: '#fff0ef' },
+          { label: 'Total Orders', value: String(4220 + safeOrders.length), trend: '↑ 9%', icon: '📋', color: '#2E5AFF', bg: '#e8edff' },
+          { label: 'Active Hotels', value: String(safeHotels.length), trend: 'Across 4 regions', icon: '🏨', color: '#FF8A34', bg: '#fff3e8' },
+          { label: 'Theft Reports', value: String(safeThefts.length), trend: 'Needs attention', icon: '🚨', color: '#FF3B30', bg: '#fff0ef' },
         ].map(m => (
           <div className="metric-card" key={m.label}>
             <div className="metric-icon" style={{ background: m.bg, color: m.color }}>{m.icon}</div>

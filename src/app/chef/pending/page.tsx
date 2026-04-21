@@ -65,9 +65,9 @@ function ChefPending() {
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 4 }}>🔔 {kot.id} — Table {kot.tableNum}</div>
                   <div style={{ fontSize: 12, color: '#64748B', marginBottom: 12 }}>{kot.orderId} · Received at {kot.time} ({kot.elapsed} ago)</div>
-                  {kot.items.map((item, i) => (
+                  {(kot.items || []).map((item: any, i: number) => (
                     <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 8 }}>
-                      <div style={{ width: 32, height: 32, borderRadius: 8, background: '#fff3e8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, color: '#FF8A34', flexShrink: 0 }}>×{item.qty}</div>
+                      <div style={{ width: 32, height: 32, borderRadius: 8, background: '#fff3e8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, color: '#FF8A34', flexShrink: 0 }}>×{item.quantity || item.qty || 1}</div>
                       <div>
                         <div style={{ fontWeight: 700 }}>{item.name}</div>
                         {item.note && <div style={{ fontSize: 12, color: '#FF8A34', fontStyle: 'italic' }}>⚠️ {item.note}</div>}
@@ -95,7 +95,7 @@ function ChefPending() {
               <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 16 }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 4 }}>🔥 {kot.id} — Table {kot.tableNum}</div>
-                  <div style={{ fontSize: 12, color: '#64748B' }}>{kot.items.map(i => `${i.name} ×${i.qty}`).join(', ')}</div>
+                  <div style={{ fontSize: 12, color: '#64748B' }}>{(kot.items || []).map((i: any) => `${i.name} ×${i.quantity || i.qty || 1}`).join(', ')}</div>
                 </div>
                 <button className="btn btn-secondary" onClick={() => markReady(kot.id, kot.tableNum)}>
                   ✅ Mark Ready

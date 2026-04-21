@@ -64,10 +64,10 @@ function WorkerOrders() {
 
               {/* Items */}
               <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: 10, marginBottom: 12 }}>
-                {o.items.map((item: any, i: number) => (
+                {(o.items || []).map((item: any, i: number) => (
                   <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: '4px 0' }}>
-                    <span>{item.name} × {item.qty}</span>
-                    <span style={{ fontWeight: 600 }}>{formatCurrency(item.price * item.qty)}</span>
+                    <span>{item.name} × {item.quantity || item.qty || 1}</span>
+                    <span style={{ fontWeight: 600 }}>{formatCurrency((item.price || 0) * (item.quantity || item.qty || 1))}</span>
                   </div>
                 ))}
               </div>

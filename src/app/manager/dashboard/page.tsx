@@ -13,14 +13,18 @@ import { useAuth } from '@/lib/auth';
 
 function ManagerDash() {
   const router = useRouter();
-  const { users } = useAuth();
-  const { tables, activeOrders, pendingKots } = useData();
+  const { users = [] } = useAuth();
+  const { tables = [], activeOrders = [], pendingKots = [] } = useData();
   
-  const occupied = tables.filter((t: any) => t.status === 'occupied').length;
-  const free = tables.filter((t: any) => t.status === 'free').length;
-  const reserved = tables.filter((t: any) => t.status === 'reserved').length;
-  const totalRev = activeOrders.reduce((a: number, b: any) => a + (b.totalAmount || 0), 0);
-  const hotelStaffCount = users.filter((u: any) => u.hotelId).length;
+  const safeTables = Array.isArray(tables) ? tables : [];
+  const safeOrders = Array.isArray(activeOrders) ? activeOrders : [];
+  const safeKots = Array.isArray(pendingKots) ? pendingKots : [];
+
+  const occupied = safeTables.filter((t: any) => t.status === 'occupied').length;
+  const free = safeTables.filter((t: any) => t.status === 'free').length;
+  const reserved = safeTables.filter((t: any) => t.status === 'reserved').length;
+  const totalRev = safeOrders.reduce((a: number, b: any) => a + (b.totalAmount || 0), 0);
+  const hotelStaffCount = (Array.isArray(users) ? users : []).filter((u: any) => u.hotelId).length;
 
   return (
     <DashboardLayout title="Hotel Manager Dashboard">
@@ -43,8 +47,8 @@ function ManagerDash() {
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>
         {[
           { label: "Today's Revenue", value: formatCurrency(totalRev), trend: '↑ 12%', icon: '💰', color: '#2E5AFF', bg: '#e8edff' },
-          { label: 'Active Orders', value: activeOrders.length, trend: 'Right now', icon: '📋', color: '#FF8A34', bg: '#fff3e8' },
-          { label: 'Pending KOTs', value: pendingKots.length, trend: 'Needs attention', icon: '🔔', color: '#FF3B30', bg: '#fff0ef' },
+          { label: 'Active Orders', value: safeOrders.length, trend: 'Right now', icon: '📋', color: '#FF8A34', bg: '#fff3e8' },
+          { label: 'Pending KOTs', value: safeKots.length, trend: 'Needs attention', icon: '🔔', color: '#FF3B30', bg: '#fff0ef' },
           { label: 'Staff On Duty', value: hotelStaffCount, trend: 'Across shifts', icon: '👥', color: '#00C48C', bg: '#e8fdf7' },
         ].map(m => (
           <div className="metric-card" key={m.label}>
@@ -64,20 +68,20 @@ function ManagerDash() {
             <button className="btn btn-outline btn-sm" onClick={() => router.push("/manager/live-orders")}>View All</button>
           </div>
           <div style={{ padding: '8px 20px 20px' }}>
-            {activeOrders.map(o => (
+            {safeOrders.map(o => (
               <div key={o.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: '1px solid #F1F5F9' }}>
-                <div style={{ width: 40, height: 40, borderRadius: 10, background: '#F4F6FB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#2E5AFF', fontSize: 16 }}>T{o.tableNum}</div>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: '#F4F6FB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#2E5AFF', fontSize: 16 }}>T{o.tableNum || '??'}</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 600, fontSize: 13 }}>{o.id}</div>
-                  <div style={{ fontSize: 11, color: '#94A3B8' }}>{o.items.length} items · {o.worker}</div>
+                  <div style={{ fontSize: 11, color: '#94A3B8' }}>{(o.items || []).length} items · {o.worker?.name || 'Staff'}</div>
                 </div>
                 <div>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: statusColor[o.status], background: statusColor[o.status] + '18', padding: '3px 10px', borderRadius: 12 }}>{statusLabel[o.status]}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: statusColor[o.status] || '#94A3B8', background: (statusColor[o.status] || '#94A3B8') + '18', padding: '3px 10px', borderRadius: 12 }}>{statusLabel[o.status] || o.status}</span>
                 </div>
-                <div style={{ fontWeight: 700, color: '#2E5AFF' }}>{formatCurrency(o.total)}</div>
+                <div style={{ fontWeight: 700, color: '#2E5AFF' }}>{formatCurrency(o.total || o.totalAmount || 0)}</div>
               </div>
             ))}
-            {activeOrders.length === 0 && <div style={{ padding: 20, textAlign: 'center', color: '#94A3B8' }}>No live orders</div>}
+            {safeOrders.length === 0 && <div style={{ padding: 20, textAlign: 'center', color: '#94A3B8' }}>No live orders</div>}
           </div>
         </div>
 

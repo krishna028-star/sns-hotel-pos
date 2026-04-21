@@ -5,7 +5,10 @@ import { FRANCHISES, formatCurrency } from '@/lib/mockData';
 import { useData } from '@/lib/DataContext';
 
 function ClientFranchises() {
-  const { hotels, activeOrders } = useData();
+  const { hotels = [], activeOrders = [] } = useData();
+
+  const safeHotels = Array.isArray(hotels) ? hotels : [];
+  const safeOrders = Array.isArray(activeOrders) ? activeOrders : [];
 
   return (
     <DashboardLayout title="Franchise Management">
@@ -20,9 +23,9 @@ function ClientFranchises() {
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 24 }}>
         {[
           { label: 'Total Franchises', value: FRANCHISES.length, color: '#FF8A34', bg: '#fff3e8' },
-          { label: 'Total Hotels', value: hotels.length, color: '#2E5AFF', bg: '#e8edff' },
+          { label: 'Total Hotels', value: safeHotels.length, color: '#2E5AFF', bg: '#e8edff' },
           { label: 'Total Revenue', value: formatCurrency(FRANCHISES.reduce((a,f)=>a+f.revenue,0)), color: '#1ABC9C', bg: '#e6faf7' },
-          { label: 'Total Orders', value: String(14820 + activeOrders.length), color: '#9B59B6', bg: '#f5f0ff' },
+          { label: 'Total Orders', value: String(14820 + safeOrders.length), color: '#9B59B6', bg: '#f5f0ff' },
         ].map(m => (
           <div className="metric-card" key={m.label}>
             <div className="metric-label">{m.label}</div>
@@ -58,7 +61,7 @@ function ClientFranchises() {
           <table className="data-table">
             <thead><tr><th>Hotel</th><th>Manager</th><th>Tables</th><th>Revenue</th><th>Status</th></tr></thead>
             <tbody>
-              {hotels.map((h: any) => (
+              {safeHotels.map((h: any) => (
                 <tr key={h.id}>
                   <td><strong>{h.name}</strong></td>
                   <td>{h.manager || 'Unassigned'}</td>

@@ -43,7 +43,7 @@ function ChefHistory() {
                     <td>T{k.table?.number || k.tableNum || '?'}</td>
                     <td>
                       <div style={{ fontSize: 12 }}>
-                        {k.items.map((i: any, idx: number) => <div key={idx}>{i.name} ×{i.qty}</div>)}
+                        {(k.items || []).map((i: any, idx: number) => <div key={idx}>{i.name} ×{i.quantity || i.qty || 1}</div>)}
                       </div>
                     </td>
                     <td style={{ fontSize: 12 }}>{new Date(k.createdAt).toLocaleTimeString()}</td>

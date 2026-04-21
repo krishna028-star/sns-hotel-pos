@@ -5,12 +5,16 @@ import { formatCurrency } from '@/lib/mockData';
 import { useData } from '@/lib/DataContext';
 
 function ClientInventory() {
-  const { ingredients, theftReports, purchaseOrders } = useData();
+  const { ingredients = [], theftReports = [], purchaseOrders = [] } = useData();
 
-  const totalValue = ingredients.reduce((a: number, i: any) => a + (i.stock || 0) * (i.unitCost || 0), 0);
-  const critical = ingredients.filter((i: any) => i.status === 'critical').length;
-  const totalTheft = theftReports.reduce((a: number, r: any) => a + (r.loss || 0), 0);
-  const pendingPOs = purchaseOrders.filter((p: any) => p.status === 'pending_approval' || p.status === 'pending').length;
+  const safeIngredients = Array.isArray(ingredients) ? ingredients : [];
+  const safeThefts = Array.isArray(theftReports) ? theftReports : [];
+  const safePOs = Array.isArray(purchaseOrders) ? purchaseOrders : [];
+
+  const totalValue = safeIngredients.reduce((a: number, i: any) => a + (i.stock || 0) * (i.unitCost || 0), 0);
+  const critical = safeIngredients.filter((i: any) => i.status === 'critical').length;
+  const totalTheft = safeThefts.reduce((a: number, r: any) => a + (r.loss || 0), 0);
+  const pendingPOs = safePOs.filter((p: any) => p.status === 'pending_approval' || p.status === 'pending').length;
 
   return (
     <DashboardLayout title="Chain Inventory Overview">
@@ -73,12 +77,12 @@ function ClientInventory() {
           <table className="data-table">
             <thead><tr><th>Date</th><th>Hotel</th><th>Item</th><th>Loss</th><th>Status</th></tr></thead>
             <tbody>
-              {theftReports.map((r: any) => (
+              {safeThefts.map((r: any) => (
                 <tr key={r.id}>
                   <td style={{ fontSize: 12 }}>{r.date}</td>
-                  <td>{r.hotel}</td>
-                  <td>{r.ingredient} — {r.qty}{r.unit}</td>
-                  <td style={{ color: '#FF3B30', fontWeight: 700 }}>{formatCurrency(r.loss)}</td>
+                  <td>{r.hotel?.name || r.hotel}</td>
+                  <td>{r.ingredient?.name || r.ingredient} — {r.qty}{r.unit}</td>
+                  <td style={{ color: '#FF3B30', fontWeight: 700 }}>{formatCurrency(r.loss || 0)}</td>
                   <td><span className={`badge ${r.status==='verified'?'badge-red':r.status==='submitted'?'badge-orange':'badge-gray'}`}>{r.status}</span></td>
                 </tr>
               ))}
