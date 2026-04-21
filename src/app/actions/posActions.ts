@@ -429,3 +429,15 @@ export async function fetchGlobalMetrics() {
     return { ok: false, error: error.message };
   }
 }
+
+// ─── SUPPLIERS ─────────────────────────────────────────────────────────────
+export async function fetchSuppliers() {
+  try {
+    const suppliers = await prisma.supplier.findMany({
+      orderBy: { name: 'asc' }
+    });
+    return { ok: true, suppliers };
+  } catch (error: any) {
+    return { ok: false, error: error.message };
+  }
+}

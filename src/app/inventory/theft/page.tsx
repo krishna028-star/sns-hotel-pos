@@ -4,7 +4,8 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useData } from '@/lib/DataContext';
 
 function InventoryTheft() {
-  const { theftReports: reports, addItem: addReport } = useData();
+  const { theftReports = [], addItem: addReport } = useData();
+  const reports = Array.isArray(theftReports) ? theftReports : [];
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ ingredient: '', qty: '', unit: 'kg', loss: '', description: '' });
 

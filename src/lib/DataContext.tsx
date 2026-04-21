@@ -69,6 +69,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     bookings: [],
     theftReports: [],
     purchaseOrders: [],
+    suppliers: [],
     auditLogs: [],
     metrics: { tenants: 0, users: 0, orders: 0, totalRevenue: 0 }
   });
@@ -93,6 +94,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
       const metricsRes = await actions.fetchGlobalMetrics();
       if (metricsRes.ok) data.metrics = metricsRes.metrics;
+
+      const suppliersRes = await actions.fetchSuppliers();
+      if (suppliersRes.ok) data.suppliers = suppliersRes.suppliers;
     }
 
     if (user.hotelId) {

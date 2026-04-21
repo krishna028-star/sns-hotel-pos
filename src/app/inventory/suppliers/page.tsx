@@ -18,7 +18,8 @@ import { useData } from '@/lib/DataContext';
 
 function Suppliers() {
   const router = useRouter();
-  const { suppliers, addItem, updateItem } = useData();
+  const { suppliers = [], addItem, updateItem } = useData();
+  const safeSuppliers = Array.isArray(suppliers) ? suppliers : [];
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyForm);
@@ -63,7 +64,7 @@ function Suppliers() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
-        {suppliers.map(s => (
+        {safeSuppliers.map(s => (
           <div key={s.id} className="card">
             <div style={{ padding: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>

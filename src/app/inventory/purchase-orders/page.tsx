@@ -7,7 +7,9 @@ import { useData } from '@/lib/DataContext';
 type POStatus = 'draft' | 'pending_approval' | 'approved' | 'ordered' | 'received';
 
 function PurchaseOrders() {
-  const { purchaseOrders: orders, addItem: addPO, updateItem: updatePO } = useData();
+  const { purchaseOrders = [], suppliers = [], addItem: addPO, updateItem: updatePO } = useData();
+  const orders = Array.isArray(purchaseOrders) ? purchaseOrders : [];
+  const safeSuppliers = Array.isArray(suppliers) ? suppliers : [];
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ supplier: '', items: '1', amount: '' });
 
@@ -100,7 +102,8 @@ function PurchaseOrders() {
                   <label className="form-label">Supplier</label>
                   <select className="form-select" value={form.supplier} onChange={e => setForm(f => ({ ...f, supplier: e.target.value }))}>
                     <option value="">Select supplier...</option>
-                    {['Fresh Foods Co.', 'Dairy Direct', 'Veggie World', 'Spice Garden'].map(s => <option key={s} value={s}>{s}</option>)}
+                    {safeSuppliers.map((s: any) => <option key={s.id} value={s.name}>{s.name}</option>)}
+                    {safeSuppliers.length === 0 && ['Fresh Foods Co.', 'Dairy Direct', 'Veggie World', 'Spice Garden'].map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
