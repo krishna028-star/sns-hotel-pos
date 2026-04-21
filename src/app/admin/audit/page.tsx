@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
+import { useData } from '@/lib/DataContext';
 import { AUDIT_LOGS } from '@/lib/mockData';
 
 function AdminAudit() {

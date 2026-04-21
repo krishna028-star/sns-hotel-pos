@@ -50,6 +50,8 @@ interface DataCtx {
   deleteUser: (id: string) => Promise<any>;
   toggleUserStatus: (id: string, isActive: boolean) => Promise<any>;
   createTenant: (data: any) => Promise<any>;
+  updateTenant: (id: string, data: any) => Promise<any>;
+  deleteTenant: (id: string) => Promise<any>;
   createHotel: (data: any) => Promise<any>;
 }
 
@@ -225,6 +227,18 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
      return res;
   }
 
+  const updateTenant = async (id: string, data: any) => {
+     const res = await tenantActions.updateDbTenant(user!.id, id, data);
+     if (res.ok) refreshData();
+     return res;
+  }
+
+  const deleteTenant = async (id: string) => {
+     const res = await tenantActions.deleteDbTenant(user!.id, id);
+     if (res.ok) refreshData();
+     return res;
+  }
+
   const createHotel = async (data: any) => {
     const res = await hotelActions.createDbHotel(user!.id, data);
     if (res.ok) refreshData();
@@ -252,6 +266,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     deleteUser,
     toggleUserStatus,
     createTenant,
+    updateTenant,
+    deleteTenant,
     createHotel
   }), [state, refreshData, user]);
 

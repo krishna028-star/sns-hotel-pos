@@ -45,7 +45,7 @@ function ManagerDash() {
           { label: "Today's Revenue", value: formatCurrency(totalRev), trend: '↑ 12%', icon: '💰', color: '#2E5AFF', bg: '#e8edff' },
           { label: 'Active Orders', value: activeOrders.length, trend: 'Right now', icon: '📋', color: '#FF8A34', bg: '#fff3e8' },
           { label: 'Pending KOTs', value: pendingKots.length, trend: 'Needs attention', icon: '🔔', color: '#FF3B30', bg: '#fff0ef' },
-          { label: 'Staff On Duty', value: hotelStaff.length, trend: 'Across shifts', icon: '👥', color: '#00C48C', bg: '#e8fdf7' },
+          { label: 'Staff On Duty', value: hotelStaffCount, trend: 'Across shifts', icon: '👥', color: '#00C48C', bg: '#e8fdf7' },
         ].map(m => (
           <div className="metric-card" key={m.label}>
             <div className="metric-icon" style={{ background: m.bg, color: m.color }}>{m.icon}</div>

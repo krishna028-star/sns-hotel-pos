@@ -57,3 +57,25 @@ export async function createDbTenant(userId: string, data: { name: string; domai
     return { ok: false, error: error.message };
   }
 }
+
+export async function updateDbTenant(userId: string, id: string, data: any) {
+  try {
+    const old = await prisma.tenant.findUnique({ where: { id } });
+    const tenant = await prisma.tenant.update({ where: { id }, data });
+    await logAction(userId, 'UPDATE', 'Tenant', id, old, tenant);
+    return { ok: true, tenant };
+  } catch (error: any) {
+    return { ok: false, error: error.message };
+  }
+}
+
+export async function deleteDbTenant(userId: string, id: string) {
+  try {
+    const old = await prisma.tenant.findUnique({ where: { id } });
+    await prisma.tenant.delete({ where: { id } });
+    await logAction(userId, 'DELETE', 'Tenant', id, old, null);
+    return { ok: true };
+  } catch (error: any) {
+    return { ok: false, error: error.message };
+  }
+}

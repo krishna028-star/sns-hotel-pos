@@ -7,9 +7,9 @@ import { useAuth } from '@/lib/auth';
 import { useData } from '@/lib/DataContext';
 
 function AdminTenants() {
-  const { tenants: dataTenants, addItem, updateItem, deleteItem } = useData();
+  const { tenants: dataTenants, createTenant, updateTenant, deleteTenant } = useData();
   const [tenants, setTenants] = useState<any[]>(dataTenants);
-  const [loading, setLoading] = useState(false); // Set false initially as we use mock data
+  const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('all');
   const [showModal, setShowModal] = useState(false);
@@ -20,15 +20,6 @@ function AdminTenants() {
   React.useEffect(() => {
     setTenants(dataTenants);
   }, [dataTenants]);
-
-  const loadTenants = async () => {
-    setLoading(true);
-    const res = await fetchTenants();
-    if (res.ok && res.tenants) {
-      // Logic to sync with DataContext could go here
-    }
-    setLoading(false);
-  };
 
   const openCreate = () => {
     setEditId(null);
@@ -42,27 +33,26 @@ function AdminTenants() {
     setShowModal(true);
   };
 
-  const handleCreate = async () => {
+  const handleSave = async () => {
     if (!form.name) return alert('Name is required');
+    let res;
     if (editId) {
-      updateItem('tenants', editId, form);
-      setShowModal(false);
-      return;
+      res = await updateTenant(editId, form);
+    } else {
+      res = await createTenant(form);
     }
     
-    // Optimistic UI + Action
-    addItem('tenants', { ...form, id: `t-${Date.now()}`, hotels: 0, staff: 0, created: new Date().toISOString().split('T')[0] });
-    setShowModal(false);
-    
-    const res = await createDbTenant({ name: form.name, domain: form.domain, email: form.email });
-    if (!res.ok) {
-       console.error('Cloud creation failed, but local UI is updated.', res.error);
+    if (res.ok) {
+       setShowModal(false);
+    } else {
+       alert('Operation failed: ' + res.error);
     }
   };
 
-  const handleDelete = (id: string, name: string) => {
+  const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Delete tenant "${name}"?\n\nThis will also remove all associated hotels and users. This cannot be undone.`)) return;
-    deleteItem('tenants', id);
+    const res = await deleteTenant(id);
+    if (!res.ok) alert('Delete failed: ' + res.error);
   };
 
   const filtered = tenants.filter(t =>
@@ -191,7 +181,7 @@ function AdminTenants() {
             </div>
             <div className="modal-footer">
               <button className="btn btn-outline" onClick={()=>setShowModal(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={handleCreate}>{editId ? 'Save Changes' : 'Create Global Tenant'}</button>
+              <button className="btn btn-primary" onClick={handleSave}>{editId ? 'Save Changes' : 'Create Global Tenant'}</button>
             </div>
           </div>
         </div>
