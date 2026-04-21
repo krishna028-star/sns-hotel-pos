@@ -113,9 +113,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       const inventoryRes = await actions.fetchInventory(user.hotelId as string);
       if (inventoryRes.ok) data.ingredients = inventoryRes.items;
 
-      const ordersRes = await actions.fetchOrders(user.hotelId as string);
-      if (ordersRes.ok) data.activeOrders = ordersRes.orders;
-
       const bookingsRes = await actions.fetchBookings(user.hotelId as string);
       if (bookingsRes.ok) data.bookings = bookingsRes.bookings;
     }
