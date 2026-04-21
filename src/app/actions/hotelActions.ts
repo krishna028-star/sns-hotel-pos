@@ -1,5 +1,6 @@
 'use server';
 import { prisma } from '@/lib/db';
+import { logAction } from '@/lib/audit';
 
 export async function fetchHotels(tenantId?: string) {
   try {
@@ -32,7 +33,7 @@ export async function fetchHotels(tenantId?: string) {
   }
 }
 
-export async function createDbHotel(data: { name: string; tenantId: string; address?: string; phoneNumber?: string }) {
+export async function createDbHotel(userId: string, data: { name: string; tenantId: string; address?: string; phoneNumber?: string }) {
   try {
     const hotel = await prisma.hotel.create({
       data: {
@@ -42,6 +43,8 @@ export async function createDbHotel(data: { name: string; tenantId: string; addr
         phoneNumber: data.phoneNumber,
       }
     });
+
+    await logAction(userId, 'CREATE', 'Hotel', hotel.id, null, hotel);
     return { ok: true, hotel };
   } catch (error: any) {
     return { ok: false, error: error.message };

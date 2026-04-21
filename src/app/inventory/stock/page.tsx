@@ -27,7 +27,7 @@ function StockOverview() {
     if (!adjModal || !adjQty) return;
     const delta = parseFloat(adjQty);
     if (isNaN(delta)) return;
-    const res = await adjustStock(adjModal.id, delta, adjReason);
+    const res = await adjustStock(adjModal.id, delta, adjReason, adjModal.version);
     if (res.ok) {
       setAdjModal(null);
       setAdjQty('');

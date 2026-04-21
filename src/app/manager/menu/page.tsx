@@ -1,41 +1,52 @@
 'use client';
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { MENU_CATEGORIES, formatCurrency } from '@/lib/mockData';
+import { formatCurrency } from '@/lib/mockData';
 import { useData } from '@/lib/DataContext';
 
-type MenuItem = { id: number; name: string; price: number; category: string; available: boolean; image: string };
+const MENU_CATEGORIES = ['All', 'Starter', 'Main Course', 'Dessert', 'Beverage', 'Sides'];
 
 function ManagerMenu() {
-  const { menuItems: items, addItem, updateItem, deleteItem: remove } = useData();
+  const { menuItems: items, addMenuItem, updateMenuItem, deleteMenuItem } = useData();
   const [category, setCategory] = useState('All');
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [editing, setEditing] = useState<Partial<MenuItem> | null>(null);
+  const [editing, setEditing] = useState<any | null>(null);
 
-  const filtered = items.filter(i =>
+  const filtered = (items || []).filter((i: any) =>
     (category === 'All' || i.category === category) &&
     i.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const toggleAvail = (id: number) => updateItem('menuItems', id, { available: !(items.find(i => i.id === id)?.available) });
-  const deleteItem = (id: number) => remove('menuItems', id);
+  const toggleAvail = (item: any) => updateMenuItem(item.id, { available: !item.available });
 
-  const openEdit = (item?: MenuItem) => {
+  const openEdit = (item?: any) => {
     setEditing(item ?? { name: '', price: 0, category: 'Main Course', available: true, image: '🍽️' });
     setShowModal(true);
   };
 
-  const saveItem = () => {
+  const saveItem = async () => {
     if (!editing?.name) return;
+    let res;
     if (editing.id) {
-      updateItem('menuItems', editing.id, editing);
+      res = await updateMenuItem(editing.id, editing);
     } else {
-      addItem('menuItems', { ...editing, id: Date.now() });
+      res = await addMenuItem(editing);
     }
-    setShowModal(false);
-    setEditing(null);
+    
+    if (res.ok) {
+      setShowModal(false);
+      setEditing(null);
+    } else {
+      alert('Failed to save: ' + res.error);
+    }
   };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Are you sure you want to delete this item?')) {
+      await deleteMenuItem(id);
+    }
+  }
 
   return (
     <DashboardLayout title="Menu Management">
@@ -53,7 +64,6 @@ function ManagerMenu() {
         </div>
       </div>
 
-      {/* Category Filters */}
       <div className="chips-row" style={{ marginBottom: 20 }}>
         {MENU_CATEGORIES.map(c => (
           <button key={c} className={`chip ${category === c ? 'active' : ''}`} onClick={() => setCategory(c)}>{c}</button>
@@ -61,20 +71,20 @@ function ManagerMenu() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
-        {filtered.map(item => (
+        {filtered.map((item: any) => (
           <div key={item.id} className="card" style={{ opacity: item.available ? 1 : 0.55, transition: 'all 0.2s' }}>
             <div style={{ padding: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <span style={{ fontSize: 32 }}>{item.image}</span>
+                <span style={{ fontSize: 32 }}>{item.image || '🍽️'}</span>
                 <span className={`badge ${item.available ? 'badge-green' : 'badge-gray'}`}>{item.available ? 'Available' : 'Unavailable'}</span>
               </div>
               <div style={{ fontWeight: 700, fontSize: 15 }}>{item.name}</div>
               <div style={{ fontSize: 11, color: '#94A3B8', marginBottom: 8 }}>{item.category}</div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: '#2E5AFF' }}>{formatCurrency(item.price)}</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: '#2E5AFF' }}>{formatCurrency(Number(item.price))}</div>
               <div style={{ display: 'flex', gap: 6, marginTop: 12 }}>
                 <button className="btn btn-outline btn-sm" style={{ flex: 1 }} onClick={() => openEdit(item)}>Edit</button>
-                <button className="btn btn-ghost btn-sm" onClick={() => toggleAvail(item.id)}>{item.available ? '🔕' : '✅'}</button>
-                <button className="btn btn-ghost btn-sm" style={{ color: '#FF3B30' }} onClick={() => deleteItem(item.id)}>🗑️</button>
+                <button className="btn btn-ghost btn-sm" onClick={() => toggleAvail(item)}>{item.available ? '🔕' : '✅'}</button>
+                <button className="btn btn-ghost btn-sm" style={{ color: '#FF3B30' }} onClick={() => handleDelete(item.id)}>🗑️</button>
               </div>
             </div>
           </div>
@@ -91,21 +101,21 @@ function ManagerMenu() {
             <div className="modal-body">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <div className="form-group"><label className="form-label">Item Name</label><input className="form-input" value={editing.name} onChange={e => setEditing(f => ({...f, name: e.target.value}))} /></div>
-                  <div className="form-group"><label className="form-label">Price (₹)</label><input className="form-input" type="number" value={editing.price} onChange={e => setEditing(f => ({...f, price: +e.target.value}))} /></div>
+                  <div className="form-group"><label className="form-label">Item Name</label><input className="form-input" value={editing.name} onChange={e => setEditing((f: any) => ({...f, name: e.target.value}))} /></div>
+                  <div className="form-group"><label className="form-label">Price (₹)</label><input className="form-input" type="number" value={editing.price} onChange={e => setEditing((f: any) => ({...f, price: +e.target.value}))} /></div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div className="form-group">
                     <label className="form-label">Category</label>
-                    <select className="form-select" value={editing.category} onChange={e => setEditing(f => ({...f, category: e.target.value}))}>
+                    <select className="form-select" value={editing.category} onChange={e => setEditing((f: any) => ({...f, category: e.target.value}))}>
                       {MENU_CATEGORIES.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
-                  <div className="form-group"><label className="form-label">Emoji Icon</label><input className="form-input" value={editing.image} onChange={e => setEditing(f => ({...f, image: e.target.value}))} maxLength={2} /></div>
+                  <div className="form-group"><label className="form-label">Emoji Icon</label><input className="form-input" value={editing.image} onChange={e => setEditing((f: any) => ({...f, image: e.target.value}))} maxLength={2} /></div>
                 </div>
                 <div className="form-group">
                   <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                    <input type="checkbox" checked={editing.available} onChange={e => setEditing(f => ({...f, available: e.target.checked}))} />
+                    <input type="checkbox" checked={editing.available} onChange={e => setEditing((f: any) => ({...f, available: e.target.checked}))} />
                     <span className="form-label" style={{ marginBottom: 0 }}>Available on menu</span>
                   </label>
                 </div>

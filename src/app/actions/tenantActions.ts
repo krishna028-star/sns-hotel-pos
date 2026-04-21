@@ -1,5 +1,6 @@
 'use server';
 import { prisma } from '@/lib/db';
+import { logAction } from '@/lib/audit';
 
 export async function fetchTenants() {
   try {
@@ -22,7 +23,7 @@ export async function fetchTenants() {
         hotels: t._count.hotels,
         staff: t._count.users,
         created: t.createdAt.toLocaleDateString(),
-        status: 'active' // Adding a default status for UI compatibility
+        status: 'active'
       }))
     };
   } catch (error: any) {
@@ -30,7 +31,7 @@ export async function fetchTenants() {
   }
 }
 
-export async function createDbTenant(data: { name: string; domain?: string; email?: string }) {
+export async function createDbTenant(userId: string, data: { name: string; domain?: string; email?: string }) {
   try {
     const existing = await prisma.tenant.findFirst({
       where: {
@@ -50,6 +51,7 @@ export async function createDbTenant(data: { name: string; domain?: string; emai
       }
     });
     
+    await logAction(userId, 'CREATE', 'Tenant', tenant.id, null, tenant);
     return { ok: true, tenant };
   } catch (error: any) {
     return { ok: false, error: error.message };

@@ -74,6 +74,7 @@ model Hotel {
   orders      Order[]
   staff       User[]   @relation("HotelStaff")
   inventory   InventoryItem[]
+  menuItems   MenuItem[]
   bookings    Booking[]
   purchaseOrders PurchaseOrder[]
   
@@ -134,6 +135,19 @@ enum TableStatus {
   occupied
   reserved
   cleaning
+}
+
+model MenuItem {
+  id          String   @id @default(cuid())
+  name        String
+  price       Decimal  @db.Decimal(10, 2)
+  category    String
+  available   Boolean  @default(true)
+  image       String?
+  hotelId     String
+  hotel       Hotel    @relation(fields: [hotelId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Order {
