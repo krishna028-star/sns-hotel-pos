@@ -7,28 +7,38 @@ import { useData } from '@/lib/DataContext';
 
 function CashierDash() {
   const router = useRouter();
-  const { activeOrders, updateItem } = useData();
+  const { activeOrders = [], processPayment, updateTable, tables = [] } = useData();
 
-  const pendingOrders = activeOrders.filter((o: any) => o.status === 'bill_requested');
+  const safeOrders = Array.isArray(activeOrders) ? activeOrders : [];
+  const safeTables = Array.isArray(tables) ? tables : [];
+
+  const pendingOrders = safeOrders.filter((o: any) => o.status === 'bill_requested');
   const payments = pendingOrders.map((o: any) => ({
     id: o.id,
     orderId: o.id,
-    tableNum: o.tableNum,
-    customerName: o.worker || 'Walk-in',
-    amount: o.total || 0,
+    tableId: o.tableId,
+    tableNum: o.table?.number || '?',
+    customerName: o.waiter?.name || 'Walk-in',
+    amount: o.totalAmount || 0,
     method: 'cash',
-    time: o.time
+    time: new Date(o.createdAt).toLocaleTimeString()
   }));
 
   const [cashModal, setCashModal] = useState<any | null>(null);
   const [cashReceived, setCashReceived] = useState('');
 
-  const acceptCash = () => {
+  const acceptCash = async () => {
     if (!cashModal) return;
-    updateItem('activeOrders', cashModal.orderId, { status: 'paid' });
-    updateItem('tables', activeOrders.find((x: any) => x.id === cashModal.orderId)?.tableNum, { status: 'free' });
-    setCashModal(null);
-    setCashReceived('');
+    const res = await processPayment(cashModal.orderId, { amount: cashModal.amount, method: 'cash' });
+    if (res.ok) {
+       if (cashModal.tableId) {
+          await updateTable(cashModal.tableId, { status: 'free' });
+       }
+       setCashModal(null);
+       setCashReceived('');
+    } else {
+       alert('Payment failed: ' + res.error);
+    }
   };
 
   const change = cashModal ? Math.max(0, parseFloat(cashReceived || '0') - cashModal.amount) : 0;

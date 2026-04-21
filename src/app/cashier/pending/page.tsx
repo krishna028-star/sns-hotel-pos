@@ -14,14 +14,17 @@ const ORDER_ITEMS: Record<string, {name:string;qty:number;price:number}[]> = {
 function CashierPending() {
   const { notify } = useNotifications();
   const router = useRouter();
-  const { activeOrders, processPayment } = useData();
+  const { activeOrders = [], processPayment, updateTable } = useData();
 
-  const pendingOrders = activeOrders.filter((o: any) => o.status === 'bill_requested' || o.status === 'served');
+  const safeOrders = Array.isArray(activeOrders) ? activeOrders : [];
+
+  const pendingOrders = safeOrders.filter((o: any) => o.status === 'bill_requested' || o.status === 'served');
   const payments = pendingOrders.map((o: any) => ({
     id: o.id,
     orderId: o.id,
+    tableId: o.tableId,
     tableNum: o.table?.number || '?',
-    customerName: o.worker?.name || 'Waitstaff',
+    customerName: o.waiter?.name || 'Staff',
     amount: o.totalAmount || 0,
     method: 'cash',
     time: new Date(o.createdAt).toLocaleTimeString(),
@@ -39,6 +42,9 @@ function CashierPending() {
       method: 'cash'
     });
     if (res.ok) {
+      if (cashModal.tableId) {
+         await updateTable(cashModal.tableId, { status: 'free' });
+      }
       notify('payment', `💰 Cash payment of ${formatCurrency(cashModal.amount)} accepted — Table ${cashModal.tableNum}`);
       setCashModal(null);
       setCashReceived('');

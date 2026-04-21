@@ -8,14 +8,14 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 import Link from 'next/link';
 
 function AdminDash() {
-  const { users } = useAuth();
-  const { tenants, auditLogs, metrics } = useData();
+  const { users = [] } = useAuth();
+  const { tenants = [], auditLogs = [], metrics = { totalRevenue: 0, tenants: 0, orders: 0, users: 0 } } = useData();
 
   const dashMetrics = [
-    { label: 'Global Revenue (Today)', value: formatCurrency(metrics.totalRevenue), trend: 'Real-time', icon: '💰', color: '#2E5AFF', bg: '#e8edff' },
-    { label: 'Active Tenants', value: String(metrics.tenants), trend: 'Primary Clients', icon: '🏢', color: '#1ABC9C', bg: '#e8fdf7' },
-    { label: 'Total Orders', value: String(metrics.orders), trend: 'Across all hotels', icon: '📋', color: '#FF8A34', bg: '#fff3e8' },
-    { label: 'System Users', value: String(metrics.users), trend: 'Registered accounts', icon: '👥', color: '#F39C12', bg: '#fffbec' },
+    { label: 'Global Revenue (Today)', value: formatCurrency(metrics?.totalRevenue || 0), trend: 'Real-time', icon: '💰', color: '#2E5AFF', bg: '#e8edff' },
+    { label: 'Active Tenants', value: String(metrics?.tenants || 0), trend: 'Primary Clients', icon: '🏢', color: '#1ABC9C', bg: '#e8fdf7' },
+    { label: 'Total Orders', value: String(metrics?.orders || 0), trend: 'Across all hotels', icon: '📋', color: '#FF8A34', bg: '#fff3e8' },
+    { label: 'System Users', value: String(metrics?.users || 0), trend: 'Registered accounts', icon: '👥', color: '#F39C12', bg: '#fffbec' },
   ];
 
   return (

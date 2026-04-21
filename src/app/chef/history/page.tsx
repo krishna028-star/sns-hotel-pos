@@ -8,8 +8,12 @@ const INITIAL_HISTORY = [
   { id: 'KOT-200', table: 'T1', items: [{ name: 'Chicken Biryani', qty: 2 }], time: '7:15 PM', duration: '25 min', chef: 'Chef Ravi' },
 ];
 
+import { useData } from '@/lib/DataContext';
+
 function ChefHistory() {
-  const [history] = useState(INITIAL_HISTORY);
+  const { orders = [] } = useData();
+  const safeOrders = Array.isArray(orders) ? orders : [];
+  const history = safeOrders.filter((o: any) => o.status === 'paid' || o.status === 'served');
   return (
     <DashboardLayout title="KOT History">
       <div className="page-header">
@@ -36,18 +40,18 @@ function ChefHistory() {
                 history.map(k => (
                   <tr key={k.id}>
                     <td><strong>{k.id}</strong></td>
-                    <td>T{k.table}</td>
+                    <td>T{k.table?.number || k.tableNum || '?'}</td>
                     <td>
                       <div style={{ fontSize: 12 }}>
                         {k.items.map((i: any, idx: number) => <div key={idx}>{i.name} ×{i.qty}</div>)}
                       </div>
                     </td>
-                    <td style={{ fontSize: 12 }}>{k.time}</td>
+                    <td style={{ fontSize: 12 }}>{new Date(k.createdAt).toLocaleTimeString()}</td>
                     <td>
-                      <span style={{ fontWeight: 700, color: parseInt(k.duration) < 20 ? '#00C48C' : '#FF8A34' }}>{k.duration}</span>
+                      <span style={{ fontWeight: 700, color: '#00C48C' }}>-</span>
                     </td>
-                    <td style={{ fontSize: 12 }}>{k.chef}</td>
-                    <td><span className="badge badge-green">✅ Served</span></td>
+                    <td style={{ fontSize: 12 }}>{k.waiter?.name || 'Staff'}</td>
+                    <td><span className="badge badge-green">✅ {k.status}</span></td>
                   </tr>
                 ))
               )}

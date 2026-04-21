@@ -7,15 +7,16 @@ import { formatCurrency } from '@/lib/mockData';
 const methodColor: Record<string, string> = { cash: 'badge-green', card: 'badge-blue', upi: 'badge-purple', app: 'badge-orange' };
 
 function PaymentHistory() {
-  const { activeOrders } = useData();
-  const history = activeOrders.filter((o: any) => o.status === 'paid').map((o: any) => ({
+  const { orders = [] } = useData();
+  const safeOrders = Array.isArray(orders) ? orders : [];
+  const history = safeOrders.filter((o: any) => o.status === 'paid').map((o: any) => ({
     id: `PAY-${o.id}`,
     orderId: o.id,
-    table: o.tableNum,
-    customer: o.worker || 'Walk-in',
-    amount: o.total || 0,
-    method: 'cash', // Defaulted to cash since we just added 'cash' logic
-    time: o.time || '12:00 PM',
+    table: o.table?.number || o.tableNum || '?',
+    customer: o.waiter?.name || 'Walk-in',
+    amount: o.totalAmount || 0,
+    method: o.payments?.[0]?.method || 'cash',
+    time: new Date(o.createdAt).toLocaleTimeString(),
   }));
 
   const [search, setSearch] = useState('');

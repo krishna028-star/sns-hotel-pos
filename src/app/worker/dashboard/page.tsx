@@ -7,19 +7,22 @@ import { useData } from '@/lib/DataContext';
 type TableStatus = 'free' | 'occupied' | 'reserved';
 
 function WorkerDash() {
-  const { tables: dataTables, updateItem, addItem, menuItems: allMenuItems } = useData();
+  const { tables: dataTables = [], updateItem, addItem, menuItems: allMenuItems = [] } = useData();
   const [tables, setTables] = useState(dataTables);
   const [selectedTable, setSelectedTable] = useState<any | null>(null);
   const [orderItems, setOrderItems] = useState<{ id: number; name: string; price: number; qty: number }[]>([]);
   const [menuCategory, setMenuCategory] = useState('All');
   const [step, setStep] = useState<'table' | 'menu' | 'confirm'>('table');
 
+  const safeTables = Array.isArray(dataTables) ? dataTables : [];
+  const safeMenu = Array.isArray(allMenuItems) ? allMenuItems : [];
+
   useEffect(() => {
-    setTables(dataTables);
+    setTables(safeTables);
   }, [dataTables]);
 
-  const occupied = tables.filter((t: any) => t.status === 'occupied').length;
-  const free = tables.filter((t: any) => t.status === 'free').length;
+  const occupied = safeTables.filter((t: any) => t.status === 'occupied').length;
+  const free = safeTables.filter((t: any) => t.status === 'free').length;
 
   const addOrderItem = (item: any) => {
     setOrderItems(prev => {
@@ -32,35 +35,32 @@ function WorkerDash() {
   const removeItem = (id: number) => setOrderItems(prev => prev.filter(i => i.id !== id));
   const total = orderItems.reduce((a, i) => a + i.price * i.qty, 0);
 
-  const sendKOT = () => {
-    updateItem('tables', selectedTable?.id, { status: 'occupied' });
-    
-    const newOrderId = `ORD-${Math.floor(100 + Math.random() * 900)}`;
-    const newOrder = {
-      id: newOrderId,
-      tableNum: selectedTable?.number,
-      worker: 'Vijay Kumar', // Hardcoded for worker demo
-      status: 'kot_sent',
-      items: orderItems,
-      total: total,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
-    addItem('activeOrders', newOrder);
+  const { user } = useAuth();
+  const { createOrder } = useData();
 
-    const newKot = {
-      id: `KOT-${Math.floor(200 + Math.random() * 800)}`,
-      tableNum: selectedTable?.number,
-      orderId: newOrderId,
-      time: newOrder.time,
-      elapsed: '0 min',
-      status: 'pending',
-      items: orderItems
-    };
-    addItem('pendingKots', newKot);
+  const sendKOT = async () => {
+    if (!selectedTable || !user?.hotelId) return;
 
-    setStep('table');
-    setSelectedTable(null);
-    setOrderItems([]);
+    const res = await createOrder({
+      hotelId: user.hotelId,
+      tableId: selectedTable.id,
+      waiterId: user.id,
+      totalAmount: total,
+      items: orderItems.map(i => ({
+        name: i.name,
+        quantity: i.qty,
+        price: i.price,
+        notes: ''
+      }))
+    });
+
+    if (res.ok) {
+      setStep('table');
+      setSelectedTable(null);
+      setOrderItems([]);
+    } else {
+      alert('Failed: ' + res.error);
+    }
   };
 
   const menuItems = allMenuItems.filter((i: any) => i.available && (menuCategory === 'All' || i.category === menuCategory));

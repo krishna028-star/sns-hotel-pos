@@ -6,12 +6,15 @@ import { useData } from '@/lib/DataContext';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 function ClientSales() {
-  const { hotels, activeOrders } = useData();
+  const { hotels = [], activeOrders = [] } = useData();
+  const safeHotels = Array.isArray(hotels) ? hotels : [];
+  const safeOrders = Array.isArray(activeOrders) ? activeOrders : [];
+
   const baseRevenue = FRANCHISE_SALES.reduce((a, f) => a + f.revenue, 0);
-  const liveOrderTotal = activeOrders.reduce((a: number, o: any) => a + (o.total || 0), 0);
+  const liveOrderTotal = safeOrders.reduce((a: number, o: any) => a + (o.total || 0), 0);
   const totalRevenue = baseRevenue + liveOrderTotal;
   const baseOrders = FRANCHISE_SALES.reduce((a,f)=>a+f.orders,0);
-  const totalOrders = baseOrders + activeOrders.length;
+  const totalOrders = baseOrders + safeOrders.length;
   const COLORS = ['#2E5AFF', '#00C48C', '#FF8A34', '#9B59B6'];
 
   return (
@@ -31,8 +34,8 @@ function ClientSales() {
         {[
           { label: 'Chain Revenue', value: formatCurrency(totalRevenue), trend: '↑ 14%', color: '#1ABC9C', bg: '#e6faf7' },
           { label: 'Total Orders', value: totalOrders.toLocaleString(), trend: '↑ 9%', color: '#2E5AFF', bg: '#e8edff' },
-          { label: 'Active Hotels', value: String(hotels.length), trend: 'Across 4 regions', color: '#FF8A34', bg: '#fff3e8' },
-          { label: 'Avg. Revenue/Hotel', value: formatCurrency(hotels.length ? Math.round(totalRevenue / hotels.length) : 0), trend: 'Per month', color: '#9B59B6', bg: '#f5f0ff' },
+          { label: 'Active Hotels', value: String(safeHotels.length), trend: 'Across 4 regions', color: '#FF8A34', bg: '#fff3e8' },
+          { label: 'Avg. Revenue/Hotel', value: formatCurrency(safeHotels.length ? Math.round(totalRevenue / safeHotels.length) : 0), trend: 'Per month', color: '#9B59B6', bg: '#f5f0ff' },
         ].map(m => (
           <div className="metric-card" key={m.label}>
             <div className="metric-label">{m.label}</div>

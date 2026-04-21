@@ -47,16 +47,20 @@ const bookingStatusColor: Record<string, string> = { pending: '#FF8A34', confirm
 import { useData } from '@/lib/DataContext';
 
 export default function ClientOccupancyPage() {
-  const { tables, bookings } = useData();
+  const { tables = [], bookings = [] } = useData();
   const [selectedFloor, setSelectedFloor] = useState('All');
   const floors = ['All', 'Ground', '1st Floor', 'Terrace'];
-  const filtered = selectedFloor === 'All' ? tables : tables.filter((t: any) => t.floor === selectedFloor);
+  
+  const safeTables = Array.isArray(tables) ? tables : [];
+  const safeBookings = Array.isArray(bookings) ? bookings : [];
 
-  const free = tables.filter((t: any) => t.status === 'free').length;
-  const occupied = tables.filter((t: any) => t.status === 'occupied').length;
-  const reserved = tables.filter((t: any) => t.status === 'reserved').length;
-  const totalCap = tables.reduce((sum: number, t: any) => sum + (t.cap || 0), 0);
-  const occupancyRate = tables.length ? Math.round((occupied / tables.length) * 100) : 0;
+  const filtered = selectedFloor === 'All' ? safeTables : safeTables.filter((t: any) => t.floor === selectedFloor);
+
+  const free = safeTables.filter((t: any) => t.status === 'free').length;
+  const occupied = safeTables.filter((t: any) => t.status === 'occupied').length;
+  const reserved = safeTables.filter((t: any) => t.status === 'reserved').length;
+  const totalCap = safeTables.reduce((sum: number, t: any) => sum + (t.cap || 0), 0);
+  const occupancyRate = safeTables.length ? Math.round((occupied / safeTables.length) * 100) : 0;
 
   return (
     
@@ -64,12 +68,12 @@ export default function ClientOccupancyPage() {
         {/* Metrics */}
         <div className="metrics-grid" style={{ marginBottom: 24 }}>
           {[
-            { label: 'Occupancy Rate (Chain)', value: `${occupancyRate}%`, sub: `${occupied} of ${tables.length} tables`, color: '#2E5AFF', icon: '📊' },
+            { label: 'Occupancy Rate (Chain)', value: `${occupancyRate}%`, sub: `${occupied} of ${safeTables.length} tables`, color: '#2E5AFF', icon: '📊' },
             { label: 'Free Tables', value: free, sub: 'Available now', color: '#00C48C', icon: '🪑' },
             { label: 'Occupied Tables', value: occupied, sub: 'Currently serving', color: '#FF3B30', icon: '🍽️' },
             { label: 'Reserved Tables', value: reserved, sub: 'Pre-booked', color: '#FF8A34', icon: '📅' },
             { label: 'Total Covers', value: totalCap, sub: 'Across all hotels', color: '#9B59B6', icon: '👥' },
-            { label: "Today's Bookings", value: bookings.length, sub: `${bookings.filter((b: any) => b.status === 'confirmed').length} confirmed`, color: '#F39C12', icon: '🗓️' },
+            { label: "Today's Bookings", value: safeBookings.length, sub: `${safeBookings.filter((b: any) => b.status === 'confirmed').length} confirmed`, color: '#F39C12', icon: '🗓️' },
           ].map(m => (
             <div className="metric-card" key={m.label}>
               <div className="metric-icon" style={{ background: m.color + '18', color: m.color }}>{m.icon}</div>
@@ -151,13 +155,13 @@ export default function ClientOccupancyPage() {
         <div className="card" style={{ marginTop: 20 }}>
           <div className="card-header">
             <div className="card-title">📅 Today's Bookings (Chain-wide)</div>
-            <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{bookings.length} bookings</span>
+            <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{safeBookings.length} bookings</span>
           </div>
           <div className="table-wrap">
             <table className="data-table">
               <thead><tr><th>Booking ID</th><th>Customer</th><th>Hotel</th><th>Table</th><th>Time</th><th>Guests</th><th>Status</th></tr></thead>
               <tbody>
-                {bookings.map((b: any) => (
+                {safeBookings.map((b: any) => (
                   <tr key={b.id}>
                     <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{b.id}</td>
                     <td><strong>{b.name || b.customerName}</strong></td>

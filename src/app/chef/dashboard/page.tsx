@@ -17,25 +17,27 @@ interface KOT {
 import { useData } from '@/lib/DataContext';
 
 function KitchenDisplay() {
-  const { pendingKots: dataKots, updateItem } = useData();
+  const { pendingKots: dataKots = [], updateKOTStatus } = useData();
   const [kots, setKots] = useState<KOT[]>([]);
+  
+  const safeKots = Array.isArray(dataKots) ? dataKots : [];
 
   useEffect(() => {
     // Sync local flow state with context data on mount/change
-    setKots(dataKots.map(k => ({ ...k, status: k.status || 'pending' as KOTStatus })));
+    setKots(safeKots.map(k => ({ ...k, status: k.status || 'pending' as KOTStatus })));
   }, [dataKots]);
 
-  const advance = (id: string) => {
-    setKots(prev => prev.map(k => {
-      if (k.id !== id) return k;
-      const next: Record<KOTStatus, KOTStatus | null> = { pending: 'cooking', cooking: 'ready', ready: null };
-      const nextStatus = next[k.status];
-      
-      // Update global context too
-      if (nextStatus) updateItem('pendingKots', id, { status: nextStatus });
-      
-      return nextStatus ? { ...k, status: nextStatus } : k;
-    }));
+  const advance = async (id: string) => {
+    const kot = kots.find(k => k.id === id);
+    if (!kot) return;
+    
+    const next: Record<KOTStatus, KOTStatus | null> = { pending: 'cooking', cooking: 'ready', ready: null };
+    const nextStatus = next[kot.status];
+    
+    if (nextStatus) {
+      const res = await updateKOTStatus(id, nextStatus);
+      if (!res.ok) alert('Update failed: ' + res.error);
+    }
   };
 
   const colors: Record<KOTStatus, { border: string; bg: string; text: string; badge: string }> = {

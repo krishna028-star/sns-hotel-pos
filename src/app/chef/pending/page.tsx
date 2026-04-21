@@ -15,26 +15,26 @@ type KOT = {
   status: 'pending' | 'cooking' | 'ready';
 };
 
+import { useData } from '@/lib/DataContext';
+
 function ChefPending() {
-  // BUG FIX: PENDING_KOTS was static array — no state = no reactivity on accept
-  const [kots, setKots] = useState<KOT[]>(
-    (PENDING_KOTS as KOT[]).map(k => ({ ...k, status: 'pending' as const }))
-  );
+  const { pendingKots: dataKots = [], updateKOTStatus } = useData();
   const { notify } = useNotifications();
 
-  // BUG FIX: "Start Cooking" had NO onClick handler — button was completely broken
-  const startCooking = (id: string) => {
-    setKots(prev => prev.map(k => k.id === id ? { ...k, status: 'cooking' } : k));
-    notify('order', `Chef started cooking KOT ${id}`);
+  const safeKots = Array.isArray(dataKots) ? dataKots : [];
+
+  const startCooking = async (id: string) => {
+    const res = await updateKOTStatus(id, 'cooking');
+    if (res.ok) notify('order', `Chef started cooking KOT ${id}`);
   };
 
-  const markReady = (id: string, tableNum: number) => {
-    setKots(prev => prev.filter(k => k.id !== id));
-    notify('order', `🔔 Table ${tableNum} order is READY to serve!`);
+  const markReady = async (id: string, tableNum: number) => {
+    const res = await updateKOTStatus(id, 'ready');
+    if (res.ok) notify('order', `🔔 Table ${tableNum} order is READY to serve!`);
   };
 
-  const pendingKots = kots.filter(k => k.status === 'pending');
-  const cookingKots = kots.filter(k => k.status === 'cooking');
+  const pendingKots = safeKots.filter((k: any) => (k.status || 'pending') === 'pending');
+  const cookingKots = safeKots.filter((k: any) => k.status === 'cooking');
 
   return (
     <DashboardLayout title="Pending KOTs">

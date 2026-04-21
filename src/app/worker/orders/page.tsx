@@ -8,8 +8,9 @@ const statusColor: Record<string, string> = { ready: '#00C48C', cooking: '#FF8A3
 const statusEmoji: Record<string, string> = { ready: '✅', cooking: '🔥', kot_sent: '📤', bill_requested: '🧾', pending: '⏳' };
 
 function WorkerOrders() {
-  const { activeOrders, updateOrderStatus } = useData();
-  const orders = activeOrders.filter((o: any) => o.status !== 'paid');
+  const { activeOrders = [], updateOrderStatus } = useData();
+  const safeOrders = Array.isArray(activeOrders) ? activeOrders : [];
+  const orders = safeOrders.filter((o: any) => o.status !== 'paid');
 
   const requestBill = (id: string, version: number) => updateOrderStatus(id, 'bill_requested', version);
   const markServed = (id: string, version: number) => updateOrderStatus(id, 'served', version);

@@ -65,6 +65,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     users: [],
     ingredients: [],
     activeOrders: [],
+    orders: [], // Added here
     bookings: [],
     theftReports: [],
     purchaseOrders: [],
@@ -97,6 +98,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     if (user.hotelId) {
       const tablesRes = await actions.fetchTables(user.hotelId as string);
       if (tablesRes.ok) data.tables = tablesRes.tables;
+
+      const ordersRes = await actions.fetchOrders(user.hotelId as string);
+      if (ordersRes.ok) {
+        data.orders = ordersRes.orders;
+        // activeOrders = non-final status
+        data.activeOrders = ordersRes.orders.filter((o: any) => o.status !== 'paid' && o.status !== 'cancelled');
+        data.pendingKots = ordersRes.orders.flatMap((o: any) => o.kots || []).filter((k: any) => k.status !== 'ready' && k.status !== 'served');
+      }
       
       const menuRes = await actions.fetchMenuItems(user.hotelId as string);
       if (menuRes.ok) data.menuItems = menuRes.items;

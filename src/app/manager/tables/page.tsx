@@ -6,13 +6,14 @@ import { useData } from '@/lib/DataContext';
 type TableStatus = 'free' | 'occupied' | 'reserved';
 
 function ManagerTables() {
-  const { tables, addItem, updateItem, deleteItem } = useData();
+  const { tables = [], addTable, updateTable, deleteTable } = useData();
   const [selected, setSelected] = useState<any | null>(null);
   const [filter, setFilter] = useState<'all' | TableStatus>('all');
   const [qrGenerated, setQrGenerated] = useState<number[]>([]);
 
-  const filtered = tables.filter((t: any) => filter === 'all' || t.status === filter);
-  const floors = [...new Set(tables.map((t: any) => t.floor))];
+  const safeTables = Array.isArray(tables) ? tables : [];
+  const filtered = safeTables.filter((t: any) => filter === 'all' || t.status === filter);
+  const floors = [...new Set(safeTables.map((t: any) => t.floor))];
 
   const statusColor: Record<string, string> = { free: '#00C48C', occupied: '#FF3B30', reserved: '#FF8A34' };
   const statusEmoji: Record<string, string> = { free: '🟢', occupied: '🔴', reserved: '🟡' };
@@ -38,10 +39,10 @@ function ManagerTables() {
       {/* Summary */}
       <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 24 }}>
         {[
-          { label: 'Total Tables', value: tables.length, color: '#2E5AFF', bg: '#e8edff' },
-          { label: 'Free', value: tables.filter((t: any) => t.status === 'free').length, color: '#00C48C', bg: '#e8fdf7' },
-          { label: 'Occupied', value: tables.filter((t: any) => t.status === 'occupied').length, color: '#FF3B30', bg: '#fff0ef' },
-          { label: 'Reserved', value: tables.filter((t: any) => t.status === 'reserved').length, color: '#FF8A34', bg: '#fff3e8' },
+          { label: 'Total Tables', value: safeTables.length, color: '#2E5AFF', bg: '#e8edff' },
+          { label: 'Free', value: safeTables.filter((t: any) => t.status === 'free').length, color: '#00C48C', bg: '#e8fdf7' },
+          { label: 'Occupied', value: safeTables.filter((t: any) => t.status === 'occupied').length, color: '#FF3B30', bg: '#fff0ef' },
+          { label: 'Reserved', value: safeTables.filter((t: any) => t.status === 'reserved').length, color: '#FF8A34', bg: '#fff3e8' },
         ].map(m => (
           <div className="metric-card" key={m.label} style={{ cursor: 'default' }}>
             <div className="metric-label">{m.label}</div>
@@ -101,8 +102,8 @@ function ManagerTables() {
               )}
 
               <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                <button className="btn btn-outline btn-sm" style={{ flex: 1 }} onClick={() => { updateItem('tables', selected.id, { status: 'free' }); setSelected(null); }}>Mark as Free</button>
-                <button className="btn btn-ghost btn-sm" style={{ flex: 1, color: '#FF3B30' }} onClick={() => { deleteItem('tables', selected.id); setSelected(null); }}>Remove Table</button>
+                <button className="btn btn-outline btn-sm" style={{ flex: 1 }} onClick={async () => { await updateTable(selected.id, { status: 'free' }); setSelected(null); }}>Mark as Free</button>
+                <button className="btn btn-ghost btn-sm" style={{ flex: 1, color: '#FF3B30' }} onClick={async () => { await deleteTable(selected.id); setSelected(null); }}>Remove Table</button>
               </div>
             </div>
           </div>

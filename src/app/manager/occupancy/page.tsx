@@ -4,12 +4,13 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useData } from '@/lib/DataContext';
 
 function ManagerOccupancy() {
-  const { tables } = useData();
-  const floors = [...new Set(tables.map((t: any) => t.floor))];
-  const free = tables.filter((t: any) => t.status === 'free').length;
-  const occupied = tables.filter((t: any) => t.status === 'occupied').length;
-  const reserved = tables.filter((t: any) => t.status === 'reserved').length;
-  const occupancyPct = tables.length ? Math.round((occupied / tables.length) * 100) : 0;
+  const { tables = [] } = useData();
+  const safeTables = Array.isArray(tables) ? tables : [];
+  const floors = [...new Set(safeTables.map((t: any) => t.floor))];
+  const free = safeTables.filter((t: any) => t.status === 'free').length;
+  const occupied = safeTables.filter((t: any) => t.status === 'occupied').length;
+  const reserved = safeTables.filter((t: any) => t.status === 'reserved').length;
+  const occupancyPct = safeTables.length ? Math.round((occupied / safeTables.length) * 100) : 0;
 
   return (
     <DashboardLayout title="Occupancy Map">
@@ -42,8 +43,8 @@ function ManagerOccupancy() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             {[
-              { label: 'Total Seats', value: tables.reduce((a: number,t: any)=>a+(t.cap||0),0) },
-              { label: 'Occupied Seats', value: tables.filter((t: any)=>t.status==='occupied').reduce((a: number,t: any)=>a+(t.cap||0),0) },
+              { label: 'Total Seats', value: safeTables.reduce((a: number,t: any)=>a+(t.cap||0),0) },
+              { label: 'Occupied Seats', value: safeTables.filter((t: any)=>t.status==='occupied').reduce((a: number,t: any)=>a+(t.cap||0),0) },
             ].map(s => (
               <div key={s.label} style={{ padding: '10px 16px', background: '#F4F6FB', borderRadius: 10, textAlign: 'center' }}>
                 <div style={{ fontWeight: 800, fontSize: 20 }}>{s.value}</div>
@@ -55,15 +56,15 @@ function ManagerOccupancy() {
       </div>
 
       {floors.map(floor => (
-        <div key={floor} className="card" style={{ marginBottom: 16 }}>
+        <div key={floor as any} className="card" style={{ marginBottom: 16 }}>
           <div className="card-header">
             <div className="card-title">{floor as string}</div>
             <span style={{ fontSize: 12, color: '#64748B' }}>
-              {tables.filter((t: any)=>t.floor===floor&&t.status==='occupied').length}/{tables.filter((t: any)=>t.floor===floor).length} occupied
+              {safeTables.filter((t: any)=>t.floor===floor&&t.status==='occupied').length}/{safeTables.filter((t: any)=>t.floor===floor).length} occupied
             </span>
           </div>
           <div className="table-map">
-            {tables.filter((t: any) => t.floor === floor).map((t: any) => (
+            {safeTables.filter((t: any) => t.floor === floor).map((t: any) => (
               <div key={t.id} className={`table-box ${t.status}`}>
                 <div className="table-num">{t.num || t.id}</div>
                 <div className="table-status">{t.status}</div>

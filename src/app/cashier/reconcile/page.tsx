@@ -4,11 +4,12 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useData } from '@/lib/DataContext';
 
 function Reconciliation() {
-  const { activeOrders } = useData();
+  const { orders = [] } = useData();
   const [actualCash, setActualCash] = useState('');
   
-  const paidCashOrders = activeOrders.filter((o: any) => o.status === 'paid');
-  const expectedCash = paidCashOrders.reduce((sum: number, o: any) => sum + (o.total || 0), 0);
+  const safeOrders = Array.isArray(orders) ? orders : [];
+  const paidCashOrders = safeOrders.filter((o: any) => o.status === 'paid');
+  const expectedCash = paidCashOrders.reduce((sum: number, o: any) => sum + (o.totalAmount || 0), 0);
 
   const diff = parseFloat(actualCash || '0') - expectedCash;
   const [submitted, setSubmitted] = useState(false);

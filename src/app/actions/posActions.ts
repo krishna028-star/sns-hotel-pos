@@ -169,7 +169,8 @@ export async function fetchOrders(hotelId: string) {
         payments: true,
         table: true,
         customer: true,
-        waiter: true
+        waiter: true,
+        kots: true
       },
       orderBy: { createdAt: 'desc' }
     });

@@ -5,13 +5,14 @@ import { useData } from '@/lib/DataContext';
 import { useNotifications } from '@/lib/notifications';
 
 function ChefActive() {
-  const { activeOrders, updateItem } = useData();
-  const orders = activeOrders.filter(o => o.status === 'cooking');
+  const { activeOrders = [], updateOrderStatus } = useData();
+  const safeOrders = Array.isArray(activeOrders) ? activeOrders : [];
+  const orders = safeOrders.filter((o: any) => o.status === 'cooking');
   const { notify } = useNotifications();
 
-  const markReady = (orderId: string, tableNum: number) => {
-    updateItem('activeOrders', orderId, { status: 'ready' });
-    notify('order', `✅ KOT ${orderId} — Table ${tableNum} is ready to serve!`);
+  const markReady = async (orderId: string, tableNum: number, version: number) => {
+    const res = await updateOrderStatus(orderId, 'ready', version);
+    if (res.ok) notify('order', `✅ KOT ${orderId} — Table ${tableNum} is ready to serve!`);
   };
 
   return (
@@ -38,7 +39,7 @@ function ChefActive() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                  <div style={{ width: 44, height: 44, background: '#e8edff', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, color: '#2E5AFF', fontSize: 18 }}>T{order.tableNum}</div>
+                  <div style={{ width: 44, height: 44, background: '#e8edff', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, color: '#2E5AFF', fontSize: 18 }}>T{order.table?.number || order.tableNum}</div>
                   <div>
                     <div style={{ fontWeight: 800 }}>{order.id}</div>
                     <span className="badge badge-blue">Cooking 🔥</span>
@@ -53,7 +54,7 @@ function ChefActive() {
               </div>
               <button
                 className="btn btn-secondary"
-                onClick={() => markReady(order.id, order.tableNum)}
+                onClick={() => markReady(order.id, order.table?.number || order.tableNum, order.version)}
               >
                 ✅ Mark Ready
               </button>

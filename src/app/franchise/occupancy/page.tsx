@@ -6,9 +6,10 @@ import { useData } from '@/lib/DataContext';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 function FranchiseOccupancy() {
-  const { tables } = useData();
+  const { tables = [] } = useData();
+  const safeTables = Array.isArray(tables) ? tables : [];
 
-  const hotelMap = tables.reduce((acc: any, t: any) => {
+  const hotelMap = safeTables.reduce((acc: any, t: any) => {
     const name = t.hotel || 'Unassigned';
     if (!acc[name]) acc[name] = { name, tables: 0, occupied: 0, capacity: 0, guests: 0 };
     acc[name].tables += 1;
