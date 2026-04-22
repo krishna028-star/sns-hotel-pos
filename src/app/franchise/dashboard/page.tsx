@@ -1,17 +1,30 @@
 'use client';
 import React from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { SALES_TREND, FRANCHISE_SALES, formatCurrency } from '@/lib/mockData';
+// FIX: removed SALES_TREND and FRANCHISE_SALES mock imports — use real DB data
+import { formatCurrency } from '@/lib/mockData';
 import { useData } from '@/lib/DataContext';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import Link from 'next/link';
 
 function FranchiseDash() {
-  const { hotels = [], activeOrders = [], theftReports = [] } = useData();
+  const { hotels = [], activeOrders = [], orders = [], theftReports = [] } = useData();
 
   const safeHotels = Array.isArray(hotels) ? hotels : [];
   const safeOrders = Array.isArray(activeOrders) ? activeOrders : [];
   const safeThefts = Array.isArray(theftReports) ? theftReports : [];
+  const allOrders = Array.isArray(orders) ? orders : [];
+
+  // Build dynamic 7-day revenue trend from real paid orders
+  const revenueTrend = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    const dateStr = d.toLocaleDateString('en-US', { weekday: 'short' });
+    const revenue = allOrders
+      .filter((o: any) => o.status === 'paid' && new Date(o.createdAt).toDateString() === d.toDateString())
+      .reduce((a: number, o: any) => a + Number(o.totalAmount || 0), 0);
+    return { date: dateStr, revenue };
+  });
 
   return (
     <DashboardLayout title="Franchise Head Dashboard">
@@ -50,7 +63,7 @@ function FranchiseDash() {
         <div className="chart-card">
           <div className="chart-title">📈 Revenue Trend (Franchise)</div>
           <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={SALES_TREND}>
+            <AreaChart data={revenueTrend}>
               <defs><linearGradient id="fg" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#FF8A34" stopOpacity={0.3} /><stop offset="95%" stopColor="#FF8A34" stopOpacity={0} /></linearGradient></defs>
               <XAxis dataKey="date" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />

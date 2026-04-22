@@ -7,23 +7,22 @@ export async function fetchTenants() {
     const tenants = await prisma.tenant.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
-        _count: {
-          select: { hotels: true, users: true }
-        }
+        _count: { select: { hotels: true, users: true } }
       }
     });
-    
-    return { 
-      ok: true, 
+
+    return {
+      ok: true,
       tenants: tenants.map(t => ({
         id: t.id,
         name: t.name,
         domain: t.domain || 'N/A',
         logo: t.logo,
+        plan: t.plan || 'basic',
         hotels: t._count.hotels,
         staff: t._count.users,
         created: t.createdAt.toLocaleDateString(),
-        status: 'active'
+        status: t.status || 'active'
       }))
     };
   } catch (error: any) {
@@ -31,26 +30,28 @@ export async function fetchTenants() {
   }
 }
 
-export async function createDbTenant(userId: string, data: { name: string; domain?: string; email?: string }) {
+export async function createDbTenant(userId: string, data: { name: string; domain?: string; plan?: string }) {
   try {
     const existing = await prisma.tenant.findFirst({
       where: {
         OR: [
           { name: data.name },
-          { domain: data.domain || undefined }
+          ...(data.domain ? [{ domain: data.domain }] : [])
         ]
       }
     });
-    
-    if (existing) return { ok: false, error: 'Tenant name or domain already exists' };
+
+    if (existing) return { ok: false, error: 'Tenant name or domain already exists.' };
 
     const tenant = await prisma.tenant.create({
       data: {
         name: data.name,
         domain: data.domain || null,
+        plan: data.plan || 'basic',
+        status: 'active'
       }
     });
-    
+
     await logAction(userId, 'CREATE', 'Tenant', tenant.id, null, tenant);
     return { ok: true, tenant };
   } catch (error: any) {
@@ -71,7 +72,20 @@ export async function updateDbTenant(userId: string, id: string, data: any) {
 
 export async function deleteDbTenant(userId: string, id: string) {
   try {
+    // FIX: Guard against FK constraint errors
+    const hotels = await prisma.hotel.count({ where: { tenantId: id } });
+    if (hotels > 0) {
+      return { ok: false, error: `Cannot delete: ${hotels} hotel(s) still belong to this tenant. Delete hotels first.` };
+    }
+    const users = await prisma.user.count({ where: { tenantId: id } });
+    if (users > 0) {
+      return { ok: false, error: `Cannot delete: ${users} user(s) still belong to this tenant. Remove users first.` };
+    }
+
     const old = await prisma.tenant.findUnique({ where: { id } });
+    // Also clean up policies
+    await prisma.policy.deleteMany({ where: { tenantId: id } });
+    await prisma.franchise.deleteMany({ where: { tenantId: id } });
     await prisma.tenant.delete({ where: { id } });
     await logAction(userId, 'DELETE', 'Tenant', id, old, null);
     return { ok: true };

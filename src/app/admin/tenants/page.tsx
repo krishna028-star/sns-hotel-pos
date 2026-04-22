@@ -1,9 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { fetchTenants, createDbTenant } from '@/app/actions/tenantActions';
-import { useAuth } from '@/lib/auth';
-
+import DashboardLayout from '@/components/DashboardLayout';
 import { useData } from '@/lib/DataContext';
 
 function AdminTenants() {

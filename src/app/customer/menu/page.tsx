@@ -1,22 +1,35 @@
 'use client';
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { MENU_ITEMS, MENU_CATEGORIES, formatCurrency } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
+import { useAuth } from '@/lib/auth';
+import { formatCurrency } from '@/lib/mockData';
+
+const MENU_CATEGORIES = ['All', 'Starters', 'Main Course', 'Breads', 'Beverages', 'Desserts', 'Sides'];
 
 function CustomerMenu() {
+  // FIX: use live DB menu items instead of hardcoded MENU_ITEMS from mockData
+  const { menuItems = [], createOrder } = useData();
+  const { user } = useAuth();
+
   const [category, setCategory] = useState('All');
   const [search, setSearch] = useState('');
-  const [cart, setCart] = useState<{ id: number; name: string; price: number; qty: number; image: string }[]>([]);
+  const [cart, setCart] = useState<{ id: string; name: string; price: number; qty: number; image?: string }[]>([]);
+  const [placing, setPlacing] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState(false);
 
-  const add = (item: typeof MENU_ITEMS[0]) => {
+  const safeItems = Array.isArray(menuItems) ? menuItems : [];
+
+  const add = (item: any) => {
     setCart(prev => {
       const ex = prev.find(c => c.id === item.id);
-      return ex ? prev.map(c => c.id === item.id ? { ...c, qty: c.qty + 1 } : c)
-        : [...prev, { id: item.id, name: item.name, price: item.price, qty: 1, image: item.image }];
+      return ex
+        ? prev.map(c => c.id === item.id ? { ...c, qty: c.qty + 1 } : c)
+        : [...prev, { id: item.id, name: item.name, price: Number(item.price), qty: 1, image: item.image }];
     });
   };
 
-  const filtered = MENU_ITEMS.filter(i =>
+  const filtered = safeItems.filter((i: any) =>
     i.available &&
     (category === 'All' || i.category === category) &&
     i.name.toLowerCase().includes(search.toLowerCase())
@@ -25,21 +38,53 @@ function CustomerMenu() {
   const cartItems = cart.reduce((a, c) => a + c.qty, 0);
   const cartTotal = cart.reduce((a, c) => a + c.price * c.qty, 0);
 
+  const placeOrder = async () => {
+    if (cart.length === 0) return;
+    setPlacing(true);
+    const res = await createOrder({
+      customerId: user?.id,
+      totalAmount: cartTotal,
+      items: cart.map(c => ({ name: c.name, quantity: c.qty, price: c.price }))
+    });
+    setPlacing(false);
+    if (res.ok) {
+      setCart([]);
+      setOrderSuccess(true);
+      setTimeout(() => setOrderSuccess(false), 4000);
+    } else {
+      alert('Order failed: ' + res.error);
+    }
+  };
+
   return (
     <DashboardLayout title="Browse Menu">
+      {/* Success Banner */}
+      {orderSuccess && (
+        <div style={{ background: '#00C48C', color: '#fff', borderRadius: 12, padding: '14px 20px', marginBottom: 16, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 12 }}>
+          ✅ Order placed successfully! The kitchen has been notified.
+        </div>
+      )}
+
       {/* Sticky Cart Bar */}
       {cartItems > 0 && (
         <div style={{ position: 'sticky', top: 60, zIndex: 40, background: '#2E5AFF', borderRadius: 12, padding: '12px 20px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 4px 20px rgba(46,90,255,0.4)' }}>
           <div style={{ color: '#fff' }}>🛒 <strong>{cartItems} items</strong> in your order</div>
           <div style={{ color: '#fff', fontWeight: 800, fontSize: 18 }}>{formatCurrency(cartTotal)}</div>
-          <button className="btn btn-sm" style={{ background: '#fff', color: '#2E5AFF', fontWeight: 700 }}>Place Order →</button>
+          <button
+            className="btn btn-sm"
+            style={{ background: '#fff', color: '#2E5AFF', fontWeight: 700 }}
+            onClick={placeOrder}
+            disabled={placing}
+          >
+            {placing ? 'Placing...' : 'Place Order →'}
+          </button>
         </div>
       )}
 
       <div className="page-header">
         <div className="page-header-left">
           <div className="page-header-title">🍽️ Browse Menu</div>
-          <div className="page-header-sub">SNS Beach Resort · Full menu · Updated daily</div>
+          <div className="page-header-sub">{safeItems.length} items available · Updated in real-time</div>
         </div>
         <div className="search-bar" style={{ width: 260 }}>
           <span>🔍</span>
@@ -48,21 +93,23 @@ function CustomerMenu() {
       </div>
 
       <div className="chips-row" style={{ marginBottom: 20 }}>
-        {MENU_CATEGORIES.map(c => <button key={c} className={`chip ${category === c ? 'active' : ''}`} onClick={() => setCategory(c)}>{c}</button>)}
+        {MENU_CATEGORIES.map(c => (
+          <button key={c} className={`chip ${category === c ? 'active' : ''}`} onClick={() => setCategory(c)}>{c}</button>
+        ))}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
-        {filtered.map(item => {
+        {filtered.map((item: any) => {
           const inCart = cart.find(c => c.id === item.id);
           return (
             <div key={item.id} className="card" style={{ transition: 'all 0.2s', cursor: 'pointer', border: inCart ? '2px solid #2E5AFF' : '1px solid #E2E8F0' }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 12px 32px rgba(0,0,0,0.12)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = ''; }}>
               <div style={{ padding: '20px 16px', textAlign: 'center' }}>
-                <div style={{ fontSize: 52, marginBottom: 12 }}>{item.image}</div>
+                <div style={{ fontSize: 52, marginBottom: 12 }}>{item.image || '🍽️'}</div>
                 <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>{item.name}</div>
                 <div style={{ display: 'inline-block', fontSize: 11, color: '#94A3B8', background: '#F4F6FB', padding: '2px 10px', borderRadius: 10, marginBottom: 12 }}>{item.category}</div>
-                <div style={{ fontWeight: 900, fontSize: 22, color: '#2E5AFF', marginBottom: 14 }}>{formatCurrency(item.price)}</div>
+                <div style={{ fontWeight: 900, fontSize: 22, color: '#2E5AFF', marginBottom: 14 }}>{formatCurrency(Number(item.price))}</div>
                 {inCart ? (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
                     <button style={{ width: 32, height: 32, borderRadius: '50%', border: '1.5px solid #E2E8F0', background: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 16 }}
@@ -81,9 +128,9 @@ function CustomerMenu() {
 
       {filtered.length === 0 && (
         <div className="empty-state">
-          <div className="empty-state-icon">🔍</div>
-          <div className="empty-state-title">No items found</div>
-          <div className="empty-state-sub">Try a different category or search term</div>
+          <div className="empty-state-icon">{safeItems.length === 0 ? '📦' : '🔍'}</div>
+          <div className="empty-state-title">{safeItems.length === 0 ? 'No menu items yet' : 'No items found'}</div>
+          <div className="empty-state-sub">{safeItems.length === 0 ? 'The hotel has not added any menu items.' : 'Try a different category or search term'}</div>
         </div>
       )}
     </DashboardLayout>

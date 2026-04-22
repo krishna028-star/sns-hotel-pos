@@ -1,19 +1,43 @@
 'use client';
 import React, { useState } from 'react';
-
-import { useRouter } from "next/navigation";
+import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
+import { useData } from '@/lib/DataContext';
+import { useAuth } from '@/lib/auth';
 
 const timeSlots = ['12:00 PM', '12:30 PM', '1:00 PM', '1:30 PM', '7:00 PM', '7:30 PM', '8:00 PM', '8:30 PM', '9:00 PM'];
 
 function BookTable() {
   const router = useRouter();
-  const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [form, setForm] = useState({ guests: '2', date: '', time: '', notes: '' });
-  const [submitted, setSubmitted] = useState(false);
-  const [bookingId] = useState('BK-' + Math.floor(1000 + Math.random() * 9000));
+  const { user } = useAuth();
+  // FIX: submit() was a stub — now calls real createBooking() DB action
+  const { createBooking } = useData();
 
-  const submit = () => { setSubmitted(true); setStep(3); };
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [form, setForm] = useState({ name: user?.name || '', phone: '', guests: '2', date: '', time: '', notes: '' });
+  const [bookingRef, setBookingRef] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const submit = async () => {
+    if (!form.date || !form.time) return;
+    setLoading(true);
+    const res = await createBooking({
+      customerName: form.name || user?.name || 'Guest',
+      phoneNumber: form.phone,
+      guests: parseInt(form.guests),
+      date: new Date(form.date),
+      time: form.time,
+      notes: form.notes || undefined,
+      preOrder: false
+    });
+    setLoading(false);
+    if (res.ok) {
+      setBookingRef(res.booking?.id?.slice(-8).toUpperCase() || 'BK-' + Date.now());
+      setStep(3);
+    } else {
+      alert('Booking failed: ' + res.error);
+    }
+  };
 
   return (
     <DashboardLayout title="Book a Table">
@@ -43,6 +67,14 @@ function BookTable() {
             <div className="card-body">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div className="form-group">
+                  <label className="form-label">Your Name</label>
+                  <input className="form-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Full name" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Phone Number</label>
+                  <input className="form-input" type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="+91 XXXXX XXXXX" />
+                </div>
+                <div className="form-group">
                   <label className="form-label">Number of Guests</label>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     {['1', '2', '3', '4', '5', '6', '7', '8'].map(n => (
@@ -59,9 +91,9 @@ function BookTable() {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Special Requests (Optional)</label>
-                  <textarea className="form-input" rows={2} placeholder="e.g. Birthday decoration, wheelchair access..." value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
+                  <textarea className="form-input" rows={2} placeholder="e.g. Birthday decoration, window seat..." value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
                 </div>
-                <button className="btn btn-primary btn-full btn-lg" disabled={!form.date} onClick={() => setStep(2)}>Next — Choose Time →</button>
+                <button className="btn btn-primary btn-full btn-lg" disabled={!form.date || !form.name} onClick={() => setStep(2)}>Next — Choose Time →</button>
               </div>
             </div>
           </div>
@@ -81,20 +113,28 @@ function BookTable() {
               </div>
               <div style={{ display: 'flex', gap: 10 }}>
                 <button className="btn btn-outline" style={{ flex: 1 }} onClick={() => setStep(1)}>← Back</button>
-                <button className="btn btn-primary" style={{ flex: 2 }} disabled={!form.time} onClick={submit}>✅ Confirm Booking</button>
+                <button className="btn btn-primary" style={{ flex: 2 }} disabled={!form.time || loading} onClick={submit}>
+                  {loading ? '⏳ Booking...' : '✅ Confirm Booking'}
+                </button>
               </div>
             </div>
           </div>
         )}
 
-        {step === 3 && submitted && (
+        {step === 3 && (
           <div className="card" style={{ textAlign: 'center' }}>
             <div className="card-body" style={{ padding: 40 }}>
               <div style={{ fontSize: 64, marginBottom: 16 }}>🎉</div>
               <div style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>Booking Confirmed!</div>
-              <div style={{ fontSize: 14, color: '#64748B', marginBottom: 24 }}>Your table has been reserved successfully.</div>
+              <div style={{ fontSize: 14, color: '#64748B', marginBottom: 24 }}>Your table has been reserved. The team will confirm shortly.</div>
               <div style={{ background: '#F4F6FB', borderRadius: 16, padding: 20, marginBottom: 24 }}>
-                {[['Booking ID', bookingId], ['Date', form.date], ['Time', form.time], ['Guests', form.guests], ['Restaurant', 'SNS Beach Resort']].map(([k, v]) => (
+                {[
+                  ['Booking Ref', bookingRef || '—'],
+                  ['Name', form.name],
+                  ['Date', form.date],
+                  ['Time', form.time],
+                  ['Guests', form.guests],
+                ].map(([k, v]) => (
                   <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #E2E8F0' }}>
                     <span style={{ color: '#64748B' }}>{k}</span>
                     <strong>{v}</strong>
@@ -102,8 +142,8 @@ function BookTable() {
                 ))}
               </div>
               <div style={{ display: 'flex', gap: 10 }}>
-                <button className="btn btn-outline btn-full" onClick={() => router.push("/customer/bookings")}>View My Bookings</button>
-                <button className="btn btn-primary btn-full" onClick={() => router.push("/customer/dashboard")}>Browse Menu</button>
+                <button className="btn btn-outline btn-full" onClick={() => router.push('/customer/bookings')}>View My Bookings</button>
+                <button className="btn btn-primary btn-full" onClick={() => router.push('/customer/menu')}>Browse Menu</button>
               </div>
             </div>
           </div>

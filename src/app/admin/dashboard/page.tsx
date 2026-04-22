@@ -2,21 +2,34 @@
 import React from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useAuth } from '@/lib/auth';
-import { formatCurrency, AUDIT_LOGS, SALES_TREND } from '@/lib/mockData';
+import { formatCurrency } from '@/lib/mockData';
 import { useData } from '@/lib/DataContext';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import Link from 'next/link';
 
 function AdminDash() {
   const { users = [] } = useAuth();
+  // FIX: removed AUDIT_LOGS and SALES_TREND mock imports — use real DB data only
   const { tenants = [], auditLogs = [], metrics = { totalRevenue: 0, tenants: 0, orders: 0, users: 0 } } = useData();
 
   const dashMetrics = [
-    { label: 'Global Revenue (Today)', value: formatCurrency(metrics?.totalRevenue || 0), trend: 'Real-time', icon: '💰', color: '#2E5AFF', bg: '#e8edff' },
+    { label: 'Global Revenue (All Time)', value: formatCurrency(metrics?.totalRevenue || 0), trend: 'Paid orders only', icon: '💰', color: '#2E5AFF', bg: '#e8edff' },
     { label: 'Active Tenants', value: String(metrics?.tenants || 0), trend: 'Primary Clients', icon: '🏢', color: '#1ABC9C', bg: '#e8fdf7' },
     { label: 'Total Orders', value: String(metrics?.orders || 0), trend: 'Across all hotels', icon: '📋', color: '#FF8A34', bg: '#fff3e8' },
     { label: 'System Users', value: String(metrics?.users || 0), trend: 'Registered accounts', icon: '👥', color: '#F39C12', bg: '#fffbec' },
   ];
+
+  // Build a simple chart from audit logs activity (last 7 days)
+  const activityData = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    const dateStr = d.toLocaleDateString('en-US', { weekday: 'short' });
+    const count = auditLogs.filter((l: any) => {
+      const ld = new Date(l.createdAt);
+      return ld.toDateString() === d.toDateString();
+    }).length;
+    return { date: dateStr, actions: count };
+  });
 
   return (
     <DashboardLayout title="Main Admin Dashboard">
@@ -25,7 +38,7 @@ function AdminDash() {
         <div style={{ fontSize: 40 }}>🛡️</div>
         <div>
           <div style={{ color: '#fff', fontSize: 20, fontWeight: 800 }}>SNS Hotels POS — Admin Control Center</div>
-          <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginTop: 4 }}>You have full system access across all tenants. Today is {new Date().toDateString()}.</div>
+          <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginTop: 4 }}>Full system access across all tenants · {new Date().toDateString()}</div>
         </div>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
           <Link href="/admin/sales"><button className="btn btn-primary btn-sm">📊 Sales View</button></Link>
@@ -47,11 +60,11 @@ function AdminDash() {
 
       {/* Charts + Quick actions */}
       <div className="charts-grid">
-        {/* Revenue trend */}
+        {/* Audit activity chart */}
         <div className="chart-card">
-          <div className="chart-title">📈 Global Revenue Trend (Last 7 Days)</div>
+          <div className="chart-title">📈 System Activity (Last 7 Days)</div>
           <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={SALES_TREND}>
+            <AreaChart data={activityData}>
               <defs>
                 <linearGradient id="rv" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#2E5AFF" stopOpacity={0.3} />
@@ -59,9 +72,9 @@ function AdminDash() {
                 </linearGradient>
               </defs>
               <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} />
-              <Tooltip formatter={(v: unknown) => [formatCurrency(Number(v)), 'Revenue']} contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 12 }} />
-              <Area type="monotone" dataKey="revenue" stroke="#2E5AFF" strokeWidth={2} fill="url(#rv)" />
+              <YAxis tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} allowDecimals={false} />
+              <Tooltip formatter={(v: unknown) => [v, 'Actions']} contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 12 }} />
+              <Area type="monotone" dataKey="actions" stroke="#2E5AFF" strokeWidth={2} fill="url(#rv)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -73,8 +86,8 @@ function AdminDash() {
             {[
               { href: '/admin/tenants', icon: '🏢', label: 'Manage Tenants', sub: `${tenants.length} total`, color: '#1ABC9C' },
               { href: '/admin/users', icon: '👥', label: 'Manage All Users', sub: `${users.length} registered`, color: '#2E5AFF' },
-              { href: '/admin/audit', icon: '📋', label: 'View Audit Logs', sub: `${AUDIT_LOGS.length} entries`, color: '#9B59B6' },
-              { href: '/admin/anticipate', icon: '🔮', label: 'Anticipate View', sub: '7-day forecast ready', color: '#FF8A34' },
+              { href: '/admin/audit', icon: '📋', label: 'View Audit Logs', sub: `${auditLogs.length} recent entries`, color: '#9B59B6' },
+              { href: '/admin/anticipate', icon: '🔮', label: 'Anticipate View', sub: '7-day forecast', color: '#FF8A34' },
               { href: '/admin/config', icon: '⚙️', label: 'Global Config', sub: 'Taxes, gateways, policies', color: '#F39C12' },
             ].map(item => (
               <Link href={item.href} key={item.href} style={{ textDecoration: 'none' }}>
@@ -123,7 +136,7 @@ function AdminDash() {
         </div>
       </div>
 
-      {/* Recent audit logs */}
+      {/* Recent audit logs — real DB data */}
       <div className="card" style={{ marginTop: 16 }}>
         <div className="card-header">
           <div className="card-title">📋 Recent Audit Log</div>
@@ -131,18 +144,17 @@ function AdminDash() {
         </div>
         <div className="table-wrap">
           <table className="data-table">
-            <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Resource</th><th>Severity</th></tr></thead>
+            <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Resource</th></tr></thead>
             <tbody>
               {auditLogs.length === 0 ? (
-                <tr><td colSpan={5} style={{ textAlign: 'center', padding: 32, color: '#94A3B8', fontSize: 13 }}>No audit logs yet. Actions by users will appear here.</td></tr>
+                <tr><td colSpan={4} style={{ textAlign: 'center', padding: 32, color: '#94A3B8', fontSize: 13 }}>No audit logs yet. User actions will appear here.</td></tr>
               ) : (
                 auditLogs.slice(0, 5).map((log: any) => (
                   <tr key={log.id}>
                     <td style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{new Date(log.createdAt).toLocaleTimeString()}</td>
                     <td><strong>{log.user?.name || log.userId}</strong><br /><span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{log.user?.role}</span></td>
                     <td><span className="badge badge-gray">{log.action}</span></td>
-                    <td style={{ fontSize: 12 }}>{log.entity} #{log.entityId}</td>
-                    <td><span className="badge badge-green">info</span></td>
+                    <td style={{ fontSize: 12 }}>{log.entity}</td>
                   </tr>
                 ))
               )}

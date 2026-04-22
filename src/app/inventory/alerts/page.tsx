@@ -7,9 +7,16 @@ import { useData } from '@/lib/DataContext';
 
 function LowStockAlerts() {
   const router = useRouter();
-  const { ingredients } = useData();
-  const critical = ingredients.filter((i: any) => i.status === 'critical');
-  const low = ingredients.filter((i: any) => i.status === 'low');
+  const { ingredients = [] } = useData();
+
+  const safeItems = Array.isArray(ingredients) ? ingredients : [];
+
+  // FIX: status is computed in fetchInventory() server action — no `status` column in DB
+  const critical = safeItems.filter((i: any) => i.status === 'critical');
+  const low = safeItems.filter((i: any) => i.status === 'low');
+
+  const stockPct = (i: any) =>
+    Math.min(100, (Number(i.stockQuantity) / Math.max(Number(i.reorderLevel), 0.001)) * 100);
 
   return (
     <DashboardLayout title="Low Stock Alerts">
@@ -34,20 +41,23 @@ function LowStockAlerts() {
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 800, fontSize: 16 }}>{i.name}</div>
                     <div style={{ fontSize: 13, color: '#64748B', marginTop: 4 }}>
-                      Current: <strong style={{ color: '#FF3B30' }}>{i.stock} {i.unit}</strong> &nbsp;·&nbsp; Reorder point: {i.reorder} {i.unit}
+                      Current: <strong style={{ color: '#FF3B30' }}>{Number(i.stockQuantity).toFixed(2)} {i.unit}</strong>
+                      &nbsp;·&nbsp;
+                      Reorder at: {Number(i.reorderLevel).toFixed(2)} {i.unit}
                     </div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: 11, color: '#94A3B8' }}>Stock Level</div>
                     <div style={{ width: 80 }}>
-                      <div className="progress-bar"><div className="progress-fill stock-critical" style={{ width: `${Math.min(100, (i.stock / i.reorder) * 100)}%` }} /></div>
+                      <div className="progress-bar">
+                        <div className="progress-fill stock-critical" style={{ width: `${stockPct(i)}%` }} />
+                      </div>
                     </div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: 11, color: '#94A3B8' }}>Unit Cost</div>
-                    <div style={{ fontWeight: 700 }}>₹{i.unitCost}/{i.unit}</div>
+                    <div style={{ fontWeight: 700 }}>{formatCurrency(Number(i.unitCost))}/{i.unit}</div>
                   </div>
-                  {/* BUG FIX: <a><button> is invalid HTML — replaced with router.push */}
                   <button className="btn btn-danger btn-sm" onClick={() => router.push('/inventory/purchase-orders')}>🛒 Create PO</button>
                 </div>
               </div>
@@ -66,13 +76,16 @@ function LowStockAlerts() {
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 800, fontSize: 15 }}>{i.name}</div>
                     <div style={{ fontSize: 13, color: '#64748B', marginTop: 4 }}>
-                      Current: <strong style={{ color: '#FF8A34' }}>{i.stock} {i.unit}</strong> &nbsp;·&nbsp; Reorder at: {i.reorder} {i.unit}
+                      Current: <strong style={{ color: '#FF8A34' }}>{Number(i.stockQuantity).toFixed(2)} {i.unit}</strong>
+                      &nbsp;·&nbsp;
+                      Reorder at: {Number(i.reorderLevel).toFixed(2)} {i.unit}
                     </div>
                   </div>
                   <div style={{ width: 80 }}>
-                    <div className="progress-bar"><div className="progress-fill stock-low" style={{ width: `${Math.min(100, (i.stock / i.reorder) * 100)}%` }} /></div>
+                    <div className="progress-bar">
+                      <div className="progress-fill stock-low" style={{ width: `${stockPct(i)}%` }} />
+                    </div>
                   </div>
-                  {/* BUG FIX: <a><button> is invalid HTML — replaced with router.push */}
                   <button className="btn btn-outline btn-sm" style={{ borderColor: '#FF8A34', color: '#FF8A34' }} onClick={() => router.push('/inventory/purchase-orders')}>+ Create PO</button>
                 </div>
               </div>
@@ -80,12 +93,17 @@ function LowStockAlerts() {
           </div>
         </>
       )}
+
       {critical.length === 0 && low.length === 0 && (
         <div className="card">
           <div className="empty-state">
             <div className="empty-state-icon">✅</div>
             <div className="empty-state-title">All Stock Levels Healthy</div>
-            <div className="empty-state-sub">No critical or low-stock items at this time.</div>
+            <div className="empty-state-sub">
+              {safeItems.length === 0
+                ? 'No inventory items found. Add ingredients to start tracking.'
+                : 'No critical or low-stock items at this time.'}
+            </div>
           </div>
         </div>
       )}
