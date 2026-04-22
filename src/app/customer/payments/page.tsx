@@ -1,19 +1,28 @@
 'use client';
 import React from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
+import { useData } from '@/lib/DataContext';
+import { formatCurrency } from '@/lib/mockData';
 
-const payments = [
-  { id: 'TXN-4491', date: '2025-03-30', hotel: 'SNS Beach Resort', items: 4, amount: 1840, method: 'upi', status: 'paid' },
-  { id: 'TXN-4320', date: '2025-03-22', hotel: 'SNS Beach Resort', items: 3, amount: 960, method: 'app', status: 'paid' },
-  { id: 'TXN-4108', date: '2025-03-14', hotel: 'SNS Central', items: 6, amount: 2400, method: 'card', status: 'paid' },
-  { id: 'TXN-3890', date: '2025-02-28', hotel: 'SNS Beach Resort', items: 2, amount: 650, method: 'cash', status: 'paid' },
-];
-
-const methodEmoji: Record<string, string> = { upi: '📲', app: '📱', card: '🏦', cash: '💵' };
-const methodBadge: Record<string, string> = { upi: 'badge-purple', app: 'badge-blue', card: 'badge-orange', cash: 'badge-green' };
+const methodEmoji: Record<string, string> = { upi: '📲', app: '📱', card: '🏦', cash: '💵', other: '🔄' };
+const methodBadge: Record<string, string> = { upi: 'badge-purple', app: 'badge-blue', card: 'badge-orange', cash: 'badge-green', other: 'badge-gray' };
 
 function CustomerPayments() {
-  const total = payments.reduce((a, p) => a + p.amount, 0);
+  const { orders = [] } = useData();
+  const safeOrders = Array.isArray(orders) ? orders : [];
+  
+  // Since this is a demo, we assume "paid" orders belong to the user's history
+  const payments = safeOrders.filter((o: any) => o.status === 'paid').map((o: any) => ({
+    id: o.id,
+    date: new Date(o.createdAt || Date.now()).toISOString().split('T')[0],
+    hotel: o.hotelId ? `Hotel ${o.hotelId}` : 'SNS Beach Resort',
+    items: (o.items || []).length,
+    amount: Number(o.totalAmount || o.total || 0),
+    method: o.paymentMethod || 'cash',
+    status: o.status
+  }));
+
+  const total = payments.reduce((a: number, p: any) => a + p.amount, 0);
 
   return (
     <DashboardLayout title="Payment History">

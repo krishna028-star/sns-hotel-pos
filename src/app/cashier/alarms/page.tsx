@@ -1,15 +1,18 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { PENDING_PAYMENTS } from '@/lib/mockData';
+import { useData } from '@/lib/DataContext';
+import { formatCurrency } from '@/lib/mockData';
 
-type Payment = typeof PENDING_PAYMENTS[0] & { status: string };
-
+// Generate simulated "alarms" from activeOrders that are requesting the bill
 function CashierAlarms() {
-  const [alarms, setAlarms] = useState<Payment[]>(
-    PENDING_PAYMENTS.filter(p => p.method === 'app').map(p => ({ ...p }))
-  );
-  const [accepted, setAccepted] = useState<Payment[]>([]);
+  const { activeOrders = [], updateOrder } = useData();
+  const safeOrders = Array.isArray(activeOrders) ? activeOrders : [];
+
+  // Consider "app" payments or "bill_requested" status as alarms that need processing
+  const alarms = safeOrders.filter((o: any) => o.status === 'bill_requested' || o.paymentMethod === 'app');
+  // Local state for recently accepted payments in the current session
+  const [accepted, setAccepted] = useState<any[]>([]);
   const [pulse, setPulse] = useState(true);
 
   useEffect(() => {
@@ -17,11 +20,11 @@ function CashierAlarms() {
     return () => clearInterval(t);
   }, []);
 
-  const acceptPayment = (id: string) => {
-    const item = alarms.find(a => a.id === id);
+  const acceptPayment = async (id: string) => {
+    const item = alarms.find((a: any) => a.id === id);
     if (item) {
-      setAccepted(prev => [{ ...item, status: 'accepted' }, ...prev]);
-      setAlarms(prev => prev.filter(a => a.id !== id));
+      await updateOrder(id, { status: 'paid', paymentMethod: item.paymentMethod || 'app' });
+      setAccepted(prev => [{ ...item, status: 'paid', paymentMethod: item.paymentMethod || 'app' }, ...prev]);
     }
   };
 
@@ -62,13 +65,13 @@ function CashierAlarms() {
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 800, fontSize: 17, color: '#FF3B30' }}>App Payment Received!</div>
                   <div style={{ fontSize: 13, color: '#64748B', marginTop: 4 }}>
-                    <strong>{alarm.customerName}</strong> · Table {alarm.tableNum} · Order {alarm.orderId}
+                    <strong>{alarm.customer?.name || alarm.customerId || 'Customer'}</strong> · Table {alarm.table?.number || alarm.tableId} · Order {alarm.id}
                   </div>
-                  <div style={{ fontSize: 12, color: '#94A3B8' }}>{alarm.time}</div>
+                  <div style={{ fontSize: 12, color: '#94A3B8' }}>{new Date(alarm.createdAt || Date.now()).toLocaleTimeString()}</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 28, fontWeight: 900, color: '#2E5AFF' }}>₹{alarm.amount}</div>
-                  <div style={{ fontSize: 11, color: '#94A3B8' }}>via {alarm.method.toUpperCase()}</div>
+                  <div style={{ fontSize: 28, fontWeight: 900, color: '#2E5AFF' }}>{formatCurrency(Number(alarm.totalAmount || alarm.total || 0))}</div>
+                  <div style={{ fontSize: 11, color: '#94A3B8' }}>via {(alarm.paymentMethod || 'APP').toUpperCase()}</div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <button className="btn btn-secondary" style={{ fontSize: 15, padding: '10px 24px', fontWeight: 800 }} onClick={() => acceptPayment(alarm.id)}>
@@ -89,13 +92,13 @@ function CashierAlarms() {
             <table className="data-table">
               <thead><tr><th>Order</th><th>Customer</th><th>Table</th><th>Amount</th><th>Method</th><th>Status</th></tr></thead>
               <tbody>
-                {accepted.map(p => (
+                {accepted.map((p: any) => (
                   <tr key={p.id}>
-                    <td><strong>{p.orderId}</strong></td>
-                    <td>{p.customerName}</td>
-                    <td>Table {p.tableNum}</td>
-                    <td><strong style={{ color: '#00C48C' }}>₹{p.amount}</strong></td>
-                    <td><span className="badge badge-purple">{p.method}</span></td>
+                    <td><strong>{p.id}</strong></td>
+                    <td>{p.customer?.name || p.customerId || 'Customer'}</td>
+                    <td>Table {p.table?.number || p.tableId}</td>
+                    <td><strong style={{ color: '#00C48C' }}>{formatCurrency(Number(p.totalAmount || p.total || 0))}</strong></td>
+                    <td><span className="badge badge-purple">{p.paymentMethod || 'app'}</span></td>
                     <td><span className="badge badge-green">Accepted ✅</span></td>
                   </tr>
                 ))}

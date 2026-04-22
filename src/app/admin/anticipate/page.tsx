@@ -1,9 +1,19 @@
 'use client';
 import React from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { FORECAST_DATA, formatCurrency } from '@/lib/mockData';
+import { formatCurrency } from '@/lib/mockData';
 import { useData } from '@/lib/DataContext';
 import { ComposedChart, Area, Line, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+
+const FORECAST_DATA = [
+  { date: 'Mon', actual: 87000,  forecast: 91000  },
+  { date: 'Tue', actual: 102000, forecast: 105000 },
+  { date: 'Wed', actual: 94000,  forecast: 98000  },
+  { date: 'Thu', actual: 118000, forecast: 112000 },
+  { date: 'Fri', actual: 135000, forecast: 130000 },
+  { date: 'Sat', actual: 162000, forecast: 155000 },
+  { date: 'Sun', actual: null,   forecast: 148000 },
+];
 
 const fullForecast = [
   { date:'Mar 25', actual:82000, predicted:85000 },
@@ -13,7 +23,7 @@ const fullForecast = [
   { date:'Mar 29', actual:125000, predicted:120000 },
   { date:'Mar 30', actual:118000, predicted:122000 },
   { date:'Mar 31', actual:140000, predicted:135000 },
-  ...FORECAST_DATA,
+  ...FORECAST_DATA.map(d => ({ date: d.date, actual: d.actual || 0, predicted: d.forecast }))
 ];
 
 const recommendations = [

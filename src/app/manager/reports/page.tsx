@@ -1,16 +1,54 @@
 'use client';
 import React from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { SALES_TREND, TOP_ITEMS, HOURLY_SALES, formatCurrency } from '@/lib/mockData';
+import { formatCurrency } from '@/lib/mockData';
 import { useData } from '@/lib/DataContext';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 function ManagerReports() {
-  const { activeOrders } = useData();
+  const { activeOrders = [], orders = [] } = useData();
 
-  const realOrders = 385 + activeOrders.length;
-  const realTotal = 140000 + activeOrders.reduce((a: number, b: any) => a + (b.total || 0), 0);
-  const realAvg = Math.round(realTotal / realOrders);
+  const allOrders = [...(Array.isArray(orders) ? orders : []), ...(Array.isArray(activeOrders) ? activeOrders : [])];
+  
+  const realOrders = allOrders.length || 0;
+  const realTotal = allOrders.reduce((a: number, b: any) => a + Number(b.totalAmount || b.total || 0), 0);
+  const realAvg = realOrders ? Math.round(realTotal / realOrders) : 0;
+
+  // Derive Top Items
+  const itemCounts: Record<string, { qty: number; revenue: number }> = {};
+  allOrders.forEach(o => {
+    (o.items || []).forEach((i: any) => {
+      const name = i.name || 'Item';
+      if (!itemCounts[name]) itemCounts[name] = { qty: 0, revenue: 0 };
+      itemCounts[name].qty += Number(i.quantity || i.qty || 1);
+      itemCounts[name].revenue += Number(i.price || 0) * Number(i.quantity || i.qty || 1);
+    });
+  });
+  const topItemsData = Object.entries(itemCounts)
+    .map(([name, data]) => ({ name, ...data }))
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 5);
+
+  // Derive Hourly Sales (Today)
+  const todayOrders = allOrders.filter(o => new Date(o.createdAt || o.updatedAt || Date.now()).toDateString() === new Date().toDateString());
+  const hourly: Record<string, number> = {};
+  todayOrders.forEach(o => {
+    const hour = new Date(o.createdAt || o.updatedAt || Date.now()).getHours();
+    const label = `${hour > 12 ? hour - 12 : hour || 12}${hour >= 12 ? 'pm' : 'am'}`;
+    hourly[label] = (hourly[label] || 0) + Number(o.totalAmount || o.total || 0);
+  });
+  const hourlySalesData = Object.entries(hourly).map(([hour, revenue]) => ({ hour, revenue }));
+
+  // Derive 7-day Sales Trend
+  const salesTrendData = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    const label = d.toLocaleDateString('en-US', { weekday: 'short' });
+    const revenue = allOrders
+      .filter(o => new Date(o.createdAt || o.updatedAt || Date.now()).toDateString() === d.toDateString())
+      .reduce((a, b) => a + Number(b.totalAmount || b.total || 0), 0);
+    return { date: label, revenue };
+  });
 
   return (
     <DashboardLayout title="Reports & Export">
@@ -51,7 +89,7 @@ function ManagerReports() {
         <div className="chart-card">
           <div className="chart-title">📈 Revenue Trend (7 days)</div>
           <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={SALES_TREND}>
+            <AreaChart data={salesTrendData}>
               <defs><linearGradient id="rg" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#2E5AFF" stopOpacity={0.3} /><stop offset="95%" stopColor="#2E5AFF" stopOpacity={0} /></linearGradient></defs>
               <XAxis dataKey="date" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} />
@@ -63,7 +101,7 @@ function ManagerReports() {
         <div className="chart-card">
           <div className="chart-title">⏰ Sales by Hour</div>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={HOURLY_SALES}>
+            <BarChart data={hourlySalesData}>
               <XAxis dataKey="hour" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} />
               <Tooltip formatter={(v: unknown) => [formatCurrency(Number(v)), 'Revenue']} contentStyle={{ borderRadius: 8, fontSize: 12 }} />
@@ -79,9 +117,9 @@ function ManagerReports() {
           <table className="data-table">
             <thead><tr><th>Item</th><th>Quantity Sold</th><th>Revenue</th><th>Share</th></tr></thead>
             <tbody>
-              {TOP_ITEMS.map((item, i) => {
-                const total = TOP_ITEMS.reduce((a, b) => a + b.revenue, 0);
-                const pct = ((item.revenue / total) * 100).toFixed(0);
+              {topItemsData.map((item, i) => {
+                const total = topItemsData.reduce((a, b) => a + b.revenue, 0);
+                const pct = total ? ((item.revenue / total) * 100).toFixed(0) : 0;
                 return (
                   <tr key={item.name}>
                     <td><div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ width: 22, height: 22, borderRadius: '50%', background: '#e8edff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 11, color: '#2E5AFF' }}>{i + 1}</span><strong>{item.name}</strong></div></td>
@@ -96,6 +134,7 @@ function ManagerReports() {
                   </tr>
                 );
               })}
+              {topItemsData.length === 0 && <tr><td colSpan={4} style={{ textAlign: 'center', color: '#94A3B8' }}>No sales data yet</td></tr>}
             </tbody>
           </table>
         </div>
