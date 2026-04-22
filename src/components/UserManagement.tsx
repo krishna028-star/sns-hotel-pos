@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { useAuth } from '@/lib/auth';
+import { useData } from '@/lib/DataContext';
 import { ROLE_COLORS } from '@/lib/mockData';
 
 const ROLE_BADGE: Record<string, string> = {
@@ -24,9 +25,11 @@ interface UserManagementProps {
 export default function UserManagement({ title, subtitle, roleFilterOptions }: UserManagementProps) {
   // BUG FIX: destructure deleteUser — it was missing, causing runtime crash on delete click
   const { user: currentUser, users, addUser, deleteUser, updateUserPassword, canManage } = useAuth();
+  const { tenants, hotels } = useData();
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [showModal, setShowModal] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [editId, setEditId] = useState<number | string | null>(null);
@@ -35,8 +38,8 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
     name: '',
     email: '',
     role: '',
-    tenant: '',
-    hotel: '',
+    tenantId: '',
+    hotelId: '',
     password: '',
     staffId: '',
     age: '',
@@ -66,8 +69,8 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
       name: '',
       email: '',
       role: '',
-      tenant: currentUser?.tenant || 'SNS Grand Hotels',
-      hotel: '',
+      tenantId: currentUser?.tenantId || tenants[0]?.id || '',
+      hotelId: currentUser?.hotelId || '',
       password: '',
       staffId: '',
       age: '',
@@ -76,6 +79,7 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
       presenceThisMonth: '26',
       remarks: ''
     });
+    setShowPassword(false);
   };
 
   const handleSave = async () => {
@@ -98,10 +102,10 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
 
       const res = await addUser({
         ...formData,
-        hotel: formData.hotel || null,
-        tenant: formData.tenant || null,
+        hotelId: formData.hotelId || null,
+        tenantId: formData.tenantId || null,
         avatar: formData.name.trim().split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase(),
-      });
+      } as any);
 
       if (res.ok) {
         setSuccessMsg(`✅ User "${formData.name}" created globally via Cloud DB!`);
@@ -261,7 +265,33 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
               </div>
               <div className="form-group">
                 <label className="form-label">{editId ? 'New Password *' : 'Password *'}</label>
-                <input className="form-input" type="password" placeholder="Min. 6 characters" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} />
+                <div style={{ position: 'relative' }}>
+                  <input 
+                    className="form-input" 
+                    type={showPassword ? 'text' : 'password'} 
+                    placeholder="Min. 6 characters" 
+                    value={formData.password} 
+                    onChange={e => setFormData({ ...formData, password: e.target.value })} 
+                    style={{ paddingRight: 40 }}
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: 12,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: 16,
+                      opacity: 0.6
+                    }}
+                  >
+                    {showPassword ? '👁️' : '👁️‍🗨️'}
+                  </button>
+                </div>
               </div>
               <div className="form-group">
                 <label className="form-label">Role *</label>
@@ -306,12 +336,22 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
                 <textarea className="form-input" style={{ minHeight: 60 }} value={formData.remarks} onChange={e => setFormData({ ...formData, remarks: e.target.value })} />
               </div>
               <div className="form-group">
-                <label className="form-label">Hotel Assignment</label>
-                <input className="form-input" placeholder="e.g. SNS Beach Resort" value={formData.hotel} onChange={e => setFormData({ ...formData, hotel: e.target.value })} />
+                <label className="form-label">Tenant (Main Client) *</label>
+                <select className="form-select" value={formData.tenantId} onChange={e => setFormData({ ...formData, tenantId: e.target.value, hotelId: '' })}>
+                   <option value="">Select Tenant...</option>
+                   {tenants.map(t => (
+                     <option key={t.id} value={t.id}>{t.name}</option>
+                   ))}
+                </select>
               </div>
               <div className="form-group">
-                <label className="form-label">Franchise / Tenant</label>
-                <input className="form-input" placeholder="e.g. SNS Grand Hotels" value={formData.tenant} onChange={e => setFormData({ ...formData, tenant: e.target.value })} />
+                <label className="form-label">Hotel Assignment</label>
+                <select className="form-select" value={formData.hotelId} onChange={e => setFormData({ ...formData, hotelId: e.target.value })}>
+                   <option value="">Select Hotel...</option>
+                   {hotels.filter(h => !formData.tenantId || h.tenantId === formData.tenantId).map(h => (
+                     <option key={h.id} value={h.id}>{h.name}</option>
+                   ))}
+                </select>
               </div>
             </div>
             <div className="modal-footer">

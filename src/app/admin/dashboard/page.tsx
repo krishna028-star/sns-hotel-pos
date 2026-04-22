@@ -115,13 +115,14 @@ function AdminDash() {
         </div>
         <div className="table-wrap">
           <table className="data-table">
-            <thead><tr><th>Tenant</th><th>Domain</th><th>Plan</th><th>Hotels</th><th>Status</th><th>Created</th></tr></thead>
+            <thead><tr><th>ID</th><th>Tenant</th><th>Domain</th><th>Plan</th><th>Hotels</th><th>Status</th><th>Created</th></tr></thead>
             <tbody>
               {tenants.length === 0 ? (
-                <tr><td colSpan={6} style={{ textAlign: 'center', padding: 32, color: '#94A3B8', fontSize: 13 }}>No tenants yet. Add your first tenant to get started.</td></tr>
+                <tr><td colSpan={7} style={{ textAlign: 'center', padding: 32, color: '#94A3B8', fontSize: 13 }}>No tenants yet. Add your first tenant to get started.</td></tr>
               ) : (
                 tenants.map((t: any) => (
                   <tr key={t.id}>
+                    <td><code style={{ fontSize: 10, background: '#f1f5f9', padding: '2px 6px', borderRadius: 4 }}>{t.customId || t.id.slice(0,8)}</code></td>
                     <td><strong>{t.name}</strong></td>
                     <td style={{ color: 'var(--text-secondary)', fontFamily: 'monospace', fontSize: 12 }}>{t.domain}</td>
                     <td><span className="badge badge-blue">{t.plan}</span></td>

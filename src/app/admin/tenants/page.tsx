@@ -11,7 +11,7 @@ function AdminTenants() {
   const [status, setStatus] = useState('all');
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const [form, setForm] = useState({ name:'', domain:'', email:'', plan:'enterprise', status:'active' });
+  const [form, setForm] = useState({ name:'', customId:'', domain:'', email:'', plan:'enterprise', status:'active' });
   const [errorHeader, setErrorHeader] = useState<string | null>(null);
 
   React.useEffect(() => {
@@ -26,7 +26,7 @@ function AdminTenants() {
 
   const openEdit = (t: any) => {
     setEditId(t.id);
-    setForm({ name: t.name, domain: t.domain === 'N/A' ? '' : t.domain, email: '', plan: t.plan ?? 'enterprise', status: t.status ?? 'active' });
+    setForm({ name: t.name, customId: t.customId || '', domain: t.domain === 'N/A' ? '' : t.domain, email: '', plan: t.plan ?? 'enterprise', status: t.status ?? 'active' });
     setShowModal(true);
   };
 
@@ -106,13 +106,14 @@ function AdminTenants() {
         <div className="card-header"><div className="card-title">All Tenants ({filtered.length})</div></div>
         <div className="table-wrap">
           <table className="data-table">
-            <thead><tr><th>Tenant Name</th><th>Domain</th><th>Plan</th><th>Hotels</th><th>Staff</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+            <thead><tr><th>ID</th><th>Tenant Name</th><th>Domain</th><th>Plan</th><th>Hotels</th><th>Staff</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
             <tbody>
               {loading ? (
                 <tr><td colSpan={8} style={{ textAlign:'center', padding:40 }}>Connecting to Cloud...</td></tr>
               ) : filtered.map(t=>(
                 <tr key={t.id}>
-                  <td><strong>{t.name}</strong></td>
+                   <td><code style={{ fontSize: 10, background: '#f1f5f9', padding: '2px 6px', borderRadius: 4 }}>{t.customId || t.id.slice(0,8)}</code></td>
+                   <td><strong>{t.name}</strong></td>
                   <td style={{ fontFamily:'monospace', fontSize:12, color:'var(--text-secondary)' }}>{t.domain}</td>
                   <td><span className="badge badge-blue">{t.plan ?? 'Enterprise'}</span></td>
                   <td>{t.hotels || 0}</td>
@@ -143,6 +144,10 @@ function AdminTenants() {
               <button className="btn btn-ghost" onClick={()=>setShowModal(false)}>✕</button>
             </div>
             <div className="modal-body" style={{ display:'flex', flexDirection:'column', gap:14 }}>
+              <div className="form-group">
+                <label className="form-label">Tenant ID (Custom Code)</label>
+                <input className="form-input" placeholder="e.g. SNS-001" value={form.customId} onChange={e=>setForm({...form,customId:e.target.value})}/>
+              </div>
               <div className="form-group">
                 <label className="form-label">Tenant Name *</label>
                 <input className="form-input" placeholder="e.g. SNS Grand Hotels" value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/>

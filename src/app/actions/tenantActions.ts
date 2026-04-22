@@ -15,6 +15,7 @@ export async function fetchTenants() {
       ok: true,
       tenants: tenants.map(t => ({
         id: t.id,
+        customId: t.customId || 'N/A',
         name: t.name,
         domain: t.domain || 'N/A',
         logo: t.logo,
@@ -30,7 +31,7 @@ export async function fetchTenants() {
   }
 }
 
-export async function createDbTenant(userId: string, data: { name: string; domain?: string; plan?: string }) {
+export async function createDbTenant(userId: string, data: { name: string; customId?: string; domain?: string; plan?: string }) {
   try {
     const existing = await prisma.tenant.findFirst({
       where: {
@@ -46,6 +47,7 @@ export async function createDbTenant(userId: string, data: { name: string; domai
     const tenant = await prisma.tenant.create({
       data: {
         name: data.name,
+        customId: data.customId || null,
         domain: data.domain || null,
         plan: data.plan || 'basic',
         status: 'active'

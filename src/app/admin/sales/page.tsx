@@ -6,11 +6,18 @@ import { useData } from '@/lib/DataContext';
 import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 function AdminSales() {
-  const { tenants, activeOrders } = useData();
+  const { tenants, franchises, activeOrders } = useData();
   const [range, setRange] = useState('7d');
+  const [selectedTenant, setSelectedTenant] = useState('all');
+  const [selectedFranchise, setSelectedFranchise] = useState('all');
   const ranges = ['Today', '7d', '30d', 'Custom'];
   
-  const liveOrderTotal = activeOrders.reduce((sum: number, o: any) => sum + (o.total || 0), 0);
+  const filteredOrders = activeOrders.filter(o => 
+    (selectedTenant === 'all' || o.tenantId === selectedTenant) &&
+    (selectedFranchise === 'all' || o.franchiseId === selectedFranchise)
+  );
+
+  const liveOrderTotal = filteredOrders.reduce((sum: number, o: any) => sum + (o.total || 0), 0);
   const totalOrders = 14820 + activeOrders.length;
   const baseRevenue = 1840000;
   const liveRevenue = baseRevenue + liveOrderTotal;
@@ -22,7 +29,17 @@ function AdminSales() {
           <div className="page-header-title">📊 POS Sales Dashboard</div>
           <div className="page-header-sub">Real-time aggregated sales across all tenants</div>
         </div>
-        <div className="page-header-actions">
+        <div className="page-header-actions" style={{ gap: 12 }}>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <select className="form-select btn-sm" style={{ width: 140 }} value={selectedTenant} onChange={e => setSelectedTenant(e.target.value)}>
+              <option value="all">All Tenants</option>
+              {tenants.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
+            <select className="form-select btn-sm" style={{ width: 140 }} value={selectedFranchise} onChange={e => setSelectedFranchise(e.target.value)}>
+              <option value="all">All Franchises</option>
+              {franchises.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+            </select>
+          </div>
           <div className="chips-row">
             {ranges.map(r => <button key={r} className={`chip ${range === r ? 'active' : ''}`} onClick={() => setRange(r)}>{r}</button>)}
           </div>

@@ -26,6 +26,7 @@ enum Role {
 // ── Multi-Tenancy (SNS Group, Royal Group, etc.) ──────────────────────
 model Tenant {
   id          String   @id @default(cuid())
+  customId    String?  @unique
   name        String   @unique
   domain      String?  @unique
   logo        String?
