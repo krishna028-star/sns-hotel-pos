@@ -24,6 +24,28 @@ const NAV_CONFIG: Record<string, NavSection[]> = {
       { label: 'System Health', href: '/admin/health', icon: '🩺' },
     ]},
   ],
+  // BUG-17 FIX: mini_admin (Regional Super-Admin) nav added
+  mini_admin: [
+    { items: [{ label: 'Dashboard', href: '/admin/dashboard', icon: '⊞' }] },
+    { title: 'Regional Analytics', items: [
+      { label: 'Regional Sales', href: '/admin/sales', icon: '📊' },
+      { label: 'Inventory & Stock', href: '/admin/inventory', icon: '📦' },
+      { label: 'Occupancy', href: '/client/occupancy', icon: '🏨' },
+      { label: 'Anticipate View', href: '/admin/anticipate', icon: '🔮' },
+      { label: 'Theft Problem', href: '/client/theft', icon: '🚨' },
+    ]},
+    { title: 'Management', items: [
+      { label: 'Main Clients', href: '/admin/tenants', icon: '🏢' },
+      { label: 'Franchise CRUD', href: '/client/franchises', icon: '🤝' },
+      { label: 'Hotel CRUD', href: '/franchise/hotels', icon: '🎩' },
+      { label: 'Users', href: '/admin/users', icon: '👥' },
+      { label: 'PO Approvals', href: '/franchise/approvals', icon: '✅' },
+      { label: 'Staff Performance', href: '/admin/payroll', icon: '💼' },
+      { label: 'Audit Logs', href: '/admin/audit', icon: '📋' },
+      { label: 'Global Config', href: '/admin/config', icon: '⚙️' },
+      { label: 'System Health', href: '/admin/health', icon: '🩺' },
+    ]},
+  ],
   main_client: [
     { items: [{ label: 'Dashboard', href: '/client/dashboard', icon: '⊞' }] },
     { title: 'Analytics', items: [
@@ -48,16 +70,19 @@ const NAV_CONFIG: Record<string, NavSection[]> = {
       { label: 'Occupancy', href: '/franchise/occupancy', icon: '🏨' },
     ]},
     { title: 'Management', items: [
-      { label: 'Hotels', href: '/franchise/hotels', icon: '🏩' },
+      { label: 'Hotels', href: '/franchise/hotels', icon: '🎩' },
       { label: 'Users', href: '/franchise/users', icon: '👥' },
-      { label: 'PO Approvals', href: '/franchise/approvals', icon: '✅', badge: 2 },
-      { label: 'Theft Review', href: '/franchise/theft', icon: '🚨', badge: 1 },
+      // BUG-15 FIX: Added missing Chain Policies link
+      { label: 'Chain Policies', href: '/franchise/policies', icon: '📜' },
+      { label: 'PO Approvals', href: '/franchise/approvals', icon: '✅' },
+      { label: 'Theft Review', href: '/franchise/theft', icon: '🚨' },
     ]},
   ],
   hotel_manager: [
     { items: [{ label: 'Dashboard', href: '/manager/dashboard', icon: '⊞' }] },
     { title: 'Operations', items: [
-      { label: 'Live Orders', href: '/manager/live-orders', icon: '🔴', badge: 4 },
+      // BUG-13 FIX: Removed hardcoded static badge numbers
+      { label: 'Live Orders', href: '/manager/live-orders', icon: '🔴' },
       { label: 'Sales Report', href: '/manager/sales', icon: '📊' },
       { label: 'Occupancy map', href: '/manager/occupancy', icon: '🗺️' },
       { label: 'Anticipate', href: '/manager/anticipate', icon: '🔮' },
@@ -65,11 +90,11 @@ const NAV_CONFIG: Record<string, NavSection[]> = {
     { title: 'Configuration', items: [
       { label: 'Staff', href: '/manager/staff', icon: '👥' },
       { label: 'Menu', href: '/manager/menu', icon: '🍽️' },
-      { label: 'Tables & QR', href: '/manager/tables', icon: '🪑' },
+      { label: 'Tables & QR', href: '/manager/tables', icon: '🩑' },
     ]},
     { title: 'Approvals', items: [
-      { label: 'Discount/Void', href: '/manager/discounts', icon: '💰', badge: 2 },
-      { label: 'Theft Reports', href: '/manager/theft', icon: '🚨', badge: 1 },
+      { label: 'Discount/Void', href: '/manager/discounts', icon: '💰' },
+      { label: 'Theft Reports', href: '/manager/theft', icon: '🚨' },
       { label: 'Inventory', href: '/manager/inventory', icon: '📦' },
       { label: 'Reports', href: '/manager/reports', icon: '📋' },
     ]},
@@ -79,7 +104,7 @@ const NAV_CONFIG: Record<string, NavSection[]> = {
     { title: 'Inventory', items: [
       { label: 'Stock Overview', href: '/inventory/stock', icon: '🏗️' },
       { label: 'Stock Movement', href: '/inventory/movements', icon: '🔄' },
-      { label: 'Low Stock Alerts', href: '/inventory/alerts', icon: '⚠️', badge: 3 },
+      { label: 'Low Stock Alerts', href: '/inventory/alerts', icon: '⚠️' },
     ]},
     { title: 'Procurement', items: [
       { label: 'Purchase Orders', href: '/inventory/purchase-orders', icon: '📋' },
@@ -93,7 +118,7 @@ const NAV_CONFIG: Record<string, NavSection[]> = {
   cashier: [
     { items: [{ label: 'Dashboard', href: '/cashier/dashboard', icon: '⊞' }] },
     { title: 'Payments', items: [
-      { label: 'Payment Alarms', href: '/cashier/alarms', icon: '🔔', badge: 2 },
+      { label: 'Payment Alarms', href: '/cashier/alarms', icon: '🔔' },
       { label: 'Pending Payments', href: '/cashier/pending', icon: '⏳' },
       { label: 'Payment History', href: '/cashier/history', icon: '📋' },
     ]},
@@ -105,7 +130,7 @@ const NAV_CONFIG: Record<string, NavSection[]> = {
   chef: [
     { items: [{ label: 'Kitchen Display', href: '/chef/dashboard', icon: '👨‍🍳' }] },
     { title: 'Orders', items: [
-      { label: 'Pending KOTs', href: '/chef/pending', icon: '🔔', badge: 1 },
+      { label: 'Pending KOTs', href: '/chef/pending', icon: '🔔' },
       { label: 'Active KOTs', href: '/chef/active', icon: '🔥' },
       { label: 'History', href: '/chef/history', icon: '📋' },
     ]},
@@ -113,17 +138,17 @@ const NAV_CONFIG: Record<string, NavSection[]> = {
   worker: [
     { items: [{ label: 'Dashboard', href: '/worker/dashboard', icon: '⊞' }] },
     { title: 'Tables', items: [
-      { label: 'Floor Plan', href: '/worker/tables', icon: '🪑' },
+      { label: 'Floor Plan', href: '/worker/tables', icon: '🩑' },
       { label: 'Active Orders', href: '/worker/orders', icon: '📋' },
     ]},
     { title: 'Bookings', items: [
-      { label: 'Bookings', href: '/worker/bookings', icon: '📅', badge: 2 },
+      { label: 'Bookings', href: '/worker/bookings', icon: '📅' },
     ]},
   ],
   customer: [
     { items: [{ label: 'Home', href: '/customer/dashboard', icon: '🏠' }] },
     { title: 'Reservations', items: [
-      { label: 'Book a Table', href: '/customer/book', icon: '🪑' },
+      { label: 'Book a Table', href: '/customer/book', icon: '🩑' },
       { label: 'My Bookings', href: '/customer/bookings', icon: '📅' },
     ]},
     { title: 'Ordering', items: [

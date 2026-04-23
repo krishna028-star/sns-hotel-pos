@@ -11,7 +11,7 @@ function AdminTenants() {
   const [status, setStatus] = useState('all');
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const [form, setForm] = useState({ name:'', customId:'', domain:'', email:'', plan:'enterprise', status:'active' });
+  const [form, setForm] = useState({ name: '', customId: '', domain: '', email: '', plan: 'standard', status: 'active' });
   const [errorHeader, setErrorHeader] = useState<string | null>(null);
 
   React.useEffect(() => {
@@ -20,7 +20,7 @@ function AdminTenants() {
 
   const openCreate = () => {
     setEditId(null);
-    setForm({ name:'', domain:'', email:'', plan:'enterprise', status:'active' });
+    setForm({ name:'', customId:'', domain:'', email:'', plan:'enterprise', status:'active' });
     setShowModal(true);
   };
 

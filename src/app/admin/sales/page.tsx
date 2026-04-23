@@ -87,7 +87,7 @@ function AdminSales() {
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
               <Pie data={PAYMENT_BREAKDOWN} cx="50%" cy="50%" innerRadius={55} outerRadius={85} dataKey="value" paddingAngle={3}>
-                {PAYMENT_BREAKDOWN.map((e, i) => <Cell key={i} fill={e.color} />)}
+                {PAYMENT_BREAKDOWN.map((e: any, i: number) => <Cell key={i} fill={e.color} />)}
               </Pie>
               <Tooltip formatter={(v: unknown) => [`${Number(v)}%`, '']} contentStyle={{ borderRadius: 8, fontSize: 12 }} />
               <Legend formatter={(v) => <span style={{ fontSize: 12 }}>{v}</span>} />

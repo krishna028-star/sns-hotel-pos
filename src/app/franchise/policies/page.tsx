@@ -4,11 +4,12 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { CHAIN_POLICIES } from '@/lib/mockData';
 
 function FranchisePolicies() {
-  const [policies, setPolicies] = useState(CHAIN_POLICIES);
-  const [editId, setEditId] = useState<number | null>(null);
+  const [policies, setPolicies] = useState<any[]>(CHAIN_POLICIES);
+  const [editId, setEditId] = useState<string | null>(null);
   const [editVal, setEditVal] = useState('');
+  const [saved, setSaved] = useState(false);
 
-  const save = (id: number) => {
+  const save = (id: string) => {
     setPolicies(prev => prev.map(p => p.id === id ? { ...p, value: editVal } : p));
     setEditId(null);
   };

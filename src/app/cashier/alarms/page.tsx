@@ -6,7 +6,7 @@ import { formatCurrency } from '@/lib/mockData';
 
 // Generate simulated "alarms" from activeOrders that are requesting the bill
 function CashierAlarms() {
-  const { activeOrders = [], updateOrder } = useData();
+  const { activeOrders = [], processPayment } = useData();
   const safeOrders = Array.isArray(activeOrders) ? activeOrders : [];
 
   // Consider "app" payments or "bill_requested" status as alarms that need processing
@@ -23,7 +23,7 @@ function CashierAlarms() {
   const acceptPayment = async (id: string) => {
     const item = alarms.find((a: any) => a.id === id);
     if (item) {
-      await updateOrder(id, { status: 'paid', paymentMethod: item.paymentMethod || 'app' });
+      await processPayment(id, { method: item.paymentMethod || 'app' });
       setAccepted(prev => [{ ...item, status: 'paid', paymentMethod: item.paymentMethod || 'app' }, ...prev]);
     }
   };

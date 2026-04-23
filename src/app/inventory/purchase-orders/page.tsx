@@ -7,16 +7,16 @@ import { useData } from '@/lib/DataContext';
 type POStatus = 'draft' | 'pending_approval' | 'approved' | 'ordered' | 'received';
 
 function PurchaseOrders() {
-  const { purchaseOrders = [], suppliers = [], addItem: addPO, updateItem: updatePO } = useData();
+  const { purchaseOrders, suppliers, createPurchaseOrder, updatePurchaseOrderStatus } = useData();
   const orders = Array.isArray(purchaseOrders) ? purchaseOrders : [];
   const safeSuppliers = Array.isArray(suppliers) ? suppliers : [];
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ supplier: '', items: '1', amount: '' });
 
-  const receiveOrder = (id: string | number) => updatePO('purchaseOrders', id, { status: 'received' as POStatus });
+  const receiveOrder = (id: string | number) => updatePurchaseOrderStatus(String(id), 'received');
 
   // BUG FIX: Submit button had no handler — PO could never leave draft state
-  const submitForApproval = (id: string | number) => updatePO('purchaseOrders', id, { status: 'pending_approval' as POStatus });
+  const submitForApproval = (id: string | number) => updatePurchaseOrderStatus(String(id), 'pending_approval');
 
   const addOrder = () => {
     if (!form.supplier || !form.amount) return;
@@ -30,7 +30,7 @@ function PurchaseOrders() {
       date: new Date().toISOString().split('T')[0],
       items: parseInt(form.items) || 1
     };
-    addPO('purchaseOrders', newPO);
+    createPurchaseOrder(newPO);
     setShowModal(false);
     setForm({ supplier: '', items: '1', amount: '' });
   };

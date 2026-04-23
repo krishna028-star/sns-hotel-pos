@@ -20,6 +20,7 @@ export const ROLE_HOMES: Record<string, string> = {
 
 export const ROLE_LABELS: Record<string, string> = {
   main_admin: 'Main Admin',
+  mini_admin: 'Mini Admin',
   main_client: 'Main Client',
   franchise_head: 'Franchise Head',
   hotel_manager: 'Hotel Manager',
@@ -32,6 +33,7 @@ export const ROLE_LABELS: Record<string, string> = {
 
 export const ROLE_COLORS: Record<string, string> = {
   main_admin: '#9B59B6',
+  mini_admin: '#8E44AD',
   main_client: '#1ABC9C',
   franchise_head: '#FF8A34',
   hotel_manager: '#2E5AFF',

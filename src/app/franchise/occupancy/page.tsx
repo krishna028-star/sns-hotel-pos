@@ -17,7 +17,7 @@ function FranchiseOccupancy() {
     if (t.status === 'occupied') acc[name].occupied += 1;
     return acc;
   }, {});
-  const hotelData = Object.values(hotelMap);
+  const hotelData: any[] = Object.values(hotelMap);
 
   return (
     <DashboardLayout title="Occupancy Overview">

@@ -8,7 +8,7 @@ import { useData } from '@/lib/DataContext';
 
 function InventoryDash() {
   const router = useRouter();
-  const { inventory: ingredients = [], purchaseOrders = [] } = useData();
+  const { ingredients = [], purchaseOrders = [] } = useData();
   
   const safeIngredients = Array.isArray(ingredients) ? ingredients : [];
   const safePO = Array.isArray(purchaseOrders) ? purchaseOrders : [];

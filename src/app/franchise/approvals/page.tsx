@@ -5,13 +5,13 @@ import { formatCurrency } from '@/lib/mockData';
 import { useData } from '@/lib/DataContext';
 
 function FranchiseApprovals() {
-  const { purchaseOrders, updateItem } = useData();
+  const { purchaseOrders, updatePurchaseOrderStatus } = useData();
   const orders = purchaseOrders.filter((p: any) => p.status === 'pending_approval' || p.status === 'pending');
   const [modal, setModal] = useState<{ order: any; action: 'approve' | 'reject' } | null>(null);
   const [reason, setReason] = useState('');
 
   const handle = (id: string | number, action: string) => {
-    updateItem('purchaseOrders', id, { status: action === 'approve' ? 'approved' : 'rejected' });
+    updatePurchaseOrderStatus((id as string), action === 'approve' ? 'approved' : 'rejected');
     setModal(null);
     setReason('');
   };

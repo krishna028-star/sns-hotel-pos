@@ -164,13 +164,38 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         if (tablesRes.ok) data.tables = tablesRes.tables;
 
         if (ordersRes.ok) {
-          data.orders = ordersRes.orders;
-          data.activeOrders = ordersRes.orders.filter(
+          const fetchedOrders = ordersRes.orders || [];
+          data.orders = fetchedOrders;
+          data.activeOrders = fetchedOrders.filter(
             (o: any) => o.status !== 'paid' && o.status !== 'cancelled'
           );
-          data.pendingKots = ordersRes.orders
-            .flatMap((o: any) => (o.kots || []).map((k: any) => ({ ...k, order: o })))
-            .filter((k: any) => k.status === 'pending');
+          // BUG-02 FIX: Parse itemsJson and compute display fields for KOTs
+          data.pendingKots = fetchedOrders
+            .flatMap((o: any) => (o.kots || []).map((k: any) => {
+              let items: { name: string; qty: number; note: string }[] = [];
+              try {
+                const raw = JSON.parse(k.itemsJson || '[]');
+                items = raw.map((i: any) => ({
+                  name: i.name || '',
+                  qty: Number(i.quantity ?? i.qty ?? 1),
+                  note: i.notes || i.note || ''
+                }));
+              } catch {
+                items = [];
+              }
+              const createdAt = k.createdAt ? new Date(k.createdAt) : new Date();
+              const elapsedMs = Date.now() - createdAt.getTime();
+              const elapsedMin = Math.floor(elapsedMs / 60000);
+              return {
+                ...k,
+                order: o,
+                tableNum: o.table?.number ?? '?',
+                time: createdAt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
+                elapsed: elapsedMin < 1 ? 'just now' : `${elapsedMin} min`,
+                items
+              };
+            }))
+            .filter((k: any) => k.status === 'pending' || k.status === 'cooking');
         }
 
         if (menuRes.ok) data.menuItems = menuRes.items;
@@ -190,75 +215,69 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     refreshData();
   }, [refreshData]);
 
-  // ── Wrapper helpers ────────────────────────────────────────────────────────
-  const wrap = (fn: () => Promise<any>) => async () => {
-    const res = await fn();
-    if (res.ok) await refreshData();
-    return res;
-  };
+  // ── Wrapper helpers (all wrapped in useCallback for stable references) ─────
 
-  const addTable = async (data: any) => {
+  const addTable = useCallback(async (data: any) => {
     const res = await actions.createTable(user!.id, { ...data, hotelId: user!.hotelId! });
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const updateTable = async (id: string, data: any) => {
+  const updateTable = useCallback(async (id: string, data: any) => {
     const res = await actions.updateTable(user!.id, id, data);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const deleteTable = async (id: string) => {
+  const deleteTable = useCallback(async (id: string) => {
     const res = await actions.deleteTable(user!.id, id);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const addMenuItem = async (data: any) => {
+  const addMenuItem = useCallback(async (data: any) => {
     const res = await actions.createMenuItem(user!.id, { ...data, hotelId: user!.hotelId! });
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const updateMenuItem = async (id: string, data: any) => {
+  const updateMenuItem = useCallback(async (id: string, data: any) => {
     const res = await actions.updateMenuItem(user!.id, id, data);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const deleteMenuItem = async (id: string) => {
+  const deleteMenuItem = useCallback(async (id: string) => {
     const res = await actions.deleteMenuItem(user!.id, id);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const createOrder = async (data: any) => {
+  const createOrder = useCallback(async (data: any) => {
     const res = await actions.createOrder(user!.id, { ...data, hotelId: user!.hotelId! });
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const updateOrderStatus = async (id: string, status: string, version: number) => {
+  const updateOrderStatus = useCallback(async (id: string, status: string, version: number) => {
     const res = await actions.updateOrderStatus(user!.id, id, status, version);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const updateKOTStatus = async (id: string, status: string) => {
+  const updateKOTStatus = useCallback(async (id: string, status: string) => {
     const res = await actions.updateKOTStatus(user!.id, id, status);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const adjustStock = async (itemId: string, change: number, reason: string, version: number) => {
+  const adjustStock = useCallback(async (itemId: string, change: number, reason: string, version: number) => {
     const res = await actions.adjustStock(user!.id, itemId, change, reason, version);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const createTheftReport = async (data: any) => {
-    // FIX: TheftReport schema has no hotelId — only pass valid fields
+  const createTheftReport = useCallback(async (data: any) => {
     const res = await actions.createTheftReport(user!.id, {
       itemId: data.itemId,
       quantity: data.quantity,
@@ -267,81 +286,81 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     });
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const verifyTheftReport = async (id: string, verified: boolean) => {
+  const verifyTheftReport = useCallback(async (id: string, verified: boolean) => {
     const res = await actions.verifyTheftReport(user!.id, id, verified);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const createInventoryItem = async (data: any) => {
+  const createInventoryItem = useCallback(async (data: any) => {
     const res = await actions.createInventoryItem(user!.id, { ...data, hotelId: user!.hotelId! });
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const updateInventoryItem = async (id: string, data: any) => {
+  const updateInventoryItem = useCallback(async (id: string, data: any) => {
     const res = await actions.updateInventoryItem(user!.id, id, data);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const deleteInventoryItem = async (id: string) => {
+  const deleteInventoryItem = useCallback(async (id: string) => {
     const res = await actions.deleteInventoryItem(user!.id, id);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const createPurchaseOrder = async (data: any) => {
+  const createPurchaseOrder = useCallback(async (data: any) => {
     const res = await actions.createPurchaseOrder(user!.id, { ...data, hotelId: user!.hotelId! });
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const updatePurchaseOrderStatus = async (id: string, status: string) => {
+  const updatePurchaseOrderStatus = useCallback(async (id: string, status: string) => {
     const res = await actions.updatePurchaseOrderStatus(user!.id, id, status);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const createSupplier = async (data: any) => {
+  const createSupplier = useCallback(async (data: any) => {
     const res = await actions.createSupplier(user!.id, data);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const createBooking = async (data: any) => {
+  const createBooking = useCallback(async (data: any) => {
     const res = await actions.createBooking(user!.id, { ...data, hotelId: user!.hotelId! });
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const updateBookingStatus = async (id: string, status: string) => {
+  const updateBookingStatus = useCallback(async (id: string, status: string) => {
     const res = await actions.updateBookingStatus(user!.id, id, status);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const processPayment = async (orderId: string, data: any) => {
+  const processPayment = useCallback(async (orderId: string, data: any) => {
     const res = await actions.processPayment(user!.id, orderId, data);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const startShift = async (startingCash: number) => {
+  const startShift = useCallback(async (startingCash: number) => {
     const res = await actions.startShift(user!.id, startingCash);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const endShift = async (shiftId: string, endingCash: number, notes?: string) => {
+  const endShift = useCallback(async (shiftId: string, endingCash: number, notes?: string) => {
     const res = await actions.endShift(user!.id, shiftId, endingCash, notes);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const createUser = async (data: any) => {
+  const createUser = useCallback(async (data: any) => {
     const res = await authActions.createDbUser(user!.id, {
       ...data,
       tenantId: data.tenantId || (user as any).tenantId,
@@ -349,79 +368,79 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     });
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const updateUser = async (id: string, data: any) => {
+  const updateUser = useCallback(async (id: string, data: any) => {
     const res = await authActions.updateDbUser(user!.id, id, data);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const deleteUser = async (id: string) => {
+  const deleteUser = useCallback(async (id: string) => {
     const res = await authActions.deleteDbUser(user!.id, id);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const toggleUserStatus = async (id: string, isActive: boolean) => {
+  const toggleUserStatus = useCallback(async (id: string, isActive: boolean) => {
     const res = await authActions.toggleUserStatus(user!.id, id, isActive);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const createTenant = async (data: any) => {
+  const createTenant = useCallback(async (data: any) => {
     const res = await tenantActions.createDbTenant(user!.id, data);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const updateTenant = async (id: string, data: any) => {
+  const updateTenant = useCallback(async (id: string, data: any) => {
     const res = await tenantActions.updateDbTenant(user!.id, id, data);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const deleteTenant = async (id: string) => {
+  const deleteTenant = useCallback(async (id: string) => {
     const res = await tenantActions.deleteDbTenant(user!.id, id);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const createHotel = async (data: any) => {
+  const createHotel = useCallback(async (data: any) => {
     const res = await hotelActions.createDbHotel(user!.id, data);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const updateHotel = async (id: string, data: any) => {
+  const updateHotel = useCallback(async (id: string, data: any) => {
     const res = await hotelActions.updateDbHotel(user!.id, id, data);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const deleteHotel = async (id: string) => {
+  const deleteHotel = useCallback(async (id: string) => {
     const res = await hotelActions.deleteDbHotel(user!.id, id);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const createFranchise = async (data: any) => {
+  const createFranchise = useCallback(async (data: any) => {
     const res = await actions.createFranchise(user!.id, data);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const updateFranchise = async (id: string, data: any) => {
+  const updateFranchise = useCallback(async (id: string, data: any) => {
     const res = await actions.updateFranchise(user!.id, id, data);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
-  const deleteFranchise = async (id: string) => {
+  const deleteFranchise = useCallback(async (id: string) => {
     const res = await actions.deleteFranchise(user!.id, id);
     if (res.ok) await refreshData();
     return res;
-  };
+  }, [user, refreshData]);
 
   const value = useMemo(() => ({
     ...state,
@@ -438,8 +457,21 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     createTenant, updateTenant, deleteTenant,
     createHotel, updateHotel, deleteHotel,
     createFranchise, updateFranchise, deleteFranchise,
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [state, refreshData]);
+  }), [
+    state, refreshData,
+    addTable, updateTable, deleteTable,
+    addMenuItem, updateMenuItem, deleteMenuItem,
+    createOrder, updateOrderStatus, updateKOTStatus,
+    adjustStock, createTheftReport, verifyTheftReport,
+    createInventoryItem, updateInventoryItem, deleteInventoryItem,
+    createPurchaseOrder, updatePurchaseOrderStatus, createSupplier,
+    createBooking, updateBookingStatus,
+    processPayment, startShift, endShift,
+    createUser, updateUser, deleteUser, toggleUserStatus,
+    createTenant, updateTenant, deleteTenant,
+    createHotel, updateHotel, deleteHotel,
+    createFranchise, updateFranchise, deleteFranchise,
+  ]);
 
   return (
     <DataContext.Provider value={value}>

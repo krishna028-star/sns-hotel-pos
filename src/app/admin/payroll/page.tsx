@@ -87,7 +87,7 @@ export default function PayrollPage() {
                      <div style={{fontSize: 12, color: '#64748B'}}>{selectedUser.hotel || 'Corporate Office'} · Official Pay Slip</div>
                   </div>
                   
-                  <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20, borderBottom: '1px dashed #e2e8f0', pb: 20}}>
+                  <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20, borderBottom: '1px dashed #e2e8f0', paddingBottom: 20}}>
                      <div>
                         <div style={{fontSize: 10, color: '#94a3b8', textTransform: 'uppercase'}}>Employee Name</div>
                         <div style={{fontWeight: 700}}>{selectedUser.name}</div>

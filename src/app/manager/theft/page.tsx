@@ -4,12 +4,12 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useData } from '@/lib/DataContext';
 
 function ManagerTheft() {
-  const { theftReports: reports, updateItem } = useData();
+  const { theftReports: reports, verifyTheftReport } = useData();
   const [selected, setSelected] = useState<any | null>(null);
   const [note, setNote] = useState('');
 
   const handle = (id: string | number, status: 'verified' | 'rejected') => {
-    updateItem('theftReports', id, { status, notes: note });
+    verifyTheftReport(String(id), status === 'verified');
     setSelected(null);
     setNote('');
   };

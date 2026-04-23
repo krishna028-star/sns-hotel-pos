@@ -11,8 +11,10 @@ datasource db {
 }
 
 // ── Role Hierarchy Enum ──────────────────────────────────────────────
+// NOTE: After adding mini_admin, run: npx prisma migrate dev --name add_mini_admin_role
 enum Role {
   main_admin
+  mini_admin       // Regional super-admin (BUG-17 FIX)
   main_client
   franchise_head
   hotel_manager

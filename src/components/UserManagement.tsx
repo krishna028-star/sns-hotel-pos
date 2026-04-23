@@ -32,7 +32,7 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
   const [showPassword, setShowPassword] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-  const [editId, setEditId] = useState<number | string | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -202,7 +202,7 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
                         {u.joiningDate && <div>Joined: {new Date(u.joiningDate).toLocaleDateString()}</div>}
                       </div>
                     </td>
-                    <td><span className="badge badge-green">active</span></td>
+                    <td><span className={`badge ${u.isActive !== false ? 'badge-green' : 'badge-red'}`}>{u.isActive !== false ? 'active' : 'suspended'}</span></td>
                     <td>
                       <div style={{ display: 'flex', gap: 6 }}>
                         {canManage(u.role) && u.id !== currentUser?.id && (
@@ -211,7 +211,20 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
                               className="btn btn-outline btn-sm"
                               title="Edit Password"
                               onClick={() => {
-                                setFormData({ ...u, password: '' });
+                                setFormData({
+                                  name: u.name,
+                                  email: u.email,
+                                  role: u.role,
+                                  tenantId: u.tenantId || '',
+                                  hotelId: u.hotelId || '',
+                                  password: '',
+                                  staffId: u.staffId || '',
+                                  age: u.age ? String(u.age) : '',
+                                  salary: u.salary ? String(u.salary) : '',
+                                  workingDays: u.workingDays ? String(u.workingDays) : '',
+                                  presenceThisMonth: u.presenceThisMonth ? String(u.presenceThisMonth) : '',
+                                  remarks: u.remarks || ''
+                                });
                                 setEditId(u.id);
                                 setShowModal(true);
                                 setErrorMsg('');
@@ -358,7 +371,7 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
               <button className="btn btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
               <button
                 className="btn btn-primary"
-                disabled={(!editId && (!formData.role || !canManage(formData.role))) || (editId && !formData.password)}
+                disabled={Boolean((!editId && (!formData.role || !canManage(formData.role))) || (editId && !formData.password))}
                 onClick={handleSave}
               >
                 {editId ? 'Save Password' : 'Create User'}

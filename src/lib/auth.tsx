@@ -11,6 +11,9 @@ export interface User {
   tenant: string | null;
   hotel: string | null;
   hotelId: string | null;
+  tenantId?: string | null;
+  avatar?: string;          // Initials or emoji used in Sidebar/Topbar
+  isActive?: boolean;       // false = suspended; undefined/true = active
   staffId?: string;
   age?: number;
   joiningDate?: string;
@@ -23,6 +26,7 @@ export interface User {
 // Role hierarchy (lower number = higher power)
 const ROLE_POWER: Record<string, number> = {
   main_admin: 0,
+  mini_admin: 0,   // Regional super-admin; same tier as main_admin
   main_client: 1,
   franchise_head: 2,
   hotel_manager: 3,
@@ -92,12 +96,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback((emailOrId: string, password: string) => {
     const term = emailOrId.toLowerCase();
-    // Use all dynamic users from DB
-    const found = dynamicUsers.find(u => 
-      (u.email.toLowerCase() === term || (u.staffId && u.staffId.toLowerCase() === term)) && 
-      u.password === password // In production, this would use bcrypt.compare
+    // TODO: Upgrade to bcrypt server-side comparison before production deployment
+    const found = dynamicUsers.find(u =>
+      (u.email.toLowerCase() === term || (u.staffId && u.staffId.toLowerCase() === term)) &&
+      u.password === password &&
+      (u as any).isActive !== false  // BUG-04 FIX: Block suspended users from logging in
     );
-    if (!found) return { ok: false, error: 'Invalid Staff ID, Email or Password' };
+    if (!found) return { ok: false, error: 'Invalid Staff ID, Email or Password (or account is suspended)' };
     const safeUser = { ...found };
     delete safeUser.password;
     setUser(safeUser as any);
@@ -126,7 +131,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const duplicate = dynamicUsers.find(u => u.email.toLowerCase() === newUser.email.toLowerCase());
     if (duplicate) return { ok: false, error: `Email "${newUser.email}" is already registered.` };
 
-    const res = await createDbUser(newUser);
+    // BUG-01 FIX: Pass user.id as adminId — was calling createDbUser(newUser) with wrong arity
+    const res = await createDbUser(user.id, newUser);
     if (!res.ok) return { ok: false, error: res.error };
 
     await refreshUsers();
@@ -138,7 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!targetUser) return { ok: false, error: 'Not found' };
     if (!canManage(targetUser.role)) return { ok: false, error: 'Permission denied' };
 
-    const res = await deleteDbUser(userId);
+    const res = await deleteDbUser(user!.id, userId);
     if (!res.ok) return { ok: false, error: res.error };
 
     setDynamicUsers(prev => prev.filter(u => u.id !== userId));
@@ -151,7 +157,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!canManage(targetUser.role) && user?.id !== userId) return { ok: false, error: 'Denied.' };
     if (newPass.length < 6) return { ok: false, error: 'Password must be 6+ chars.' };
 
-    const res = await updateDbUserPassword(userId, newPass);
+    const res = await updateDbUserPassword(user!.id, userId, newPass);
     if (!res.ok) return { ok: false, error: res.error };
     
     await refreshUsers();

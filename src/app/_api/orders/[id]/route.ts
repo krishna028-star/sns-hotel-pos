@@ -2,10 +2,7 @@ import { NextRequest } from 'next/server';
 import { ACTIVE_ORDERS } from '@/lib/mockData';
 import { ok, badRequest, unauthorized, notFound, forbidden } from '@/lib/apiHelpers';
 
-let orders = [...ACTIVE_ORDERS] as Array<{
-  id: string; tableNum: number; status: string; kotStatus: string;
-  items: { name: string; qty: number; price: number }[]; total: number; worker: string;
-}>;
+let orders = [...ACTIVE_ORDERS] as any[];
 
 type OrderStatus = 'pending' | 'kot_sent' | 'cooking' | 'ready' | 'served' | 'bill_requested' | 'paid' | 'cancelled';
 

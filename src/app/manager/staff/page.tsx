@@ -28,7 +28,7 @@ function ManagerStaff() {
         alert('Password must be at least 6 characters');
         return;
       }
-      const res = await updateUserPassword(editId, form.password);
+      const res = await updateUserPassword(String(editId), form.password);
       if (res.ok) {
         alert('Password updated successfully via Cloud!');
         setShowModal(false);
@@ -49,7 +49,9 @@ function ManagerStaff() {
       const res = await addUser({
         ...form,
         tenant: currentUser?.tenant || 'SNS Grand Hotels',
+        tenantId: null,
         hotel: 'SNS Beach Resort',
+        hotelId: null,
         avatar: form.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
       });
 

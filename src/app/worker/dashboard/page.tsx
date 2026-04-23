@@ -98,7 +98,22 @@ function WorkerDash() {
                 <div className="table-map">
                   {floorTables.map((t: any) => (
                     <div key={t.id} className={`table-box ${t.status}`}
-                      onClick={() => { setSelectedTable(t); setStep('menu'); setOrderItems([]); }}>
+                      title={t.status === 'occupied' ? `Table ${t.number} is occupied — an order is in progress` : t.status === 'cleaning' ? `Table ${t.number} is being cleaned` : `Click to take order for Table ${t.number}`}
+                      style={{ cursor: t.status === 'free' || t.status === 'reserved' ? 'pointer' : 'not-allowed', opacity: t.status === 'cleaning' ? 0.5 : 1 }}
+                      onClick={() => {
+                        // BUG-09 FIX: Only allow order-taking on free/reserved tables
+                        if (t.status === 'occupied') {
+                          alert(`Table ${t.number} is currently occupied. An order is already in progress for this table.`);
+                          return;
+                        }
+                        if (t.status === 'cleaning') {
+                          alert(`Table ${t.number} is being cleaned and is not available.`);
+                          return;
+                        }
+                        setSelectedTable(t);
+                        setStep('menu');
+                        setOrderItems([]);
+                      }}>
                       <div className="table-num">{t.number}</div>
                       <div className="table-status">{t.status}</div>
                       <div style={{ fontSize: 10 }}>{t.capacity}p</div>

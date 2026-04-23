@@ -4,14 +4,14 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useData } from '@/lib/DataContext';
 
 function InventoryTheft() {
-  const { theftReports = [], addItem: addReport } = useData();
+  const { theftReports = [], createTheftReport } = useData();
   const reports = Array.isArray(theftReports) ? theftReports : [];
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ ingredient: '', qty: '', unit: 'kg', loss: '', description: '' });
 
-  const submitReport = () => {
+  const submitReport = async () => {
     if (!form.ingredient || !form.qty) return;
-    addReport('theftReports', { 
+    await createTheftReport({ 
       id: Date.now(), 
       ingredient: form.ingredient, 
       qty: parseFloat(form.qty), 

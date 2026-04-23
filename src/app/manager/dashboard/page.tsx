@@ -70,7 +70,7 @@ function ManagerDash() {
           <div style={{ padding: '8px 20px 20px' }}>
             {safeOrders.map(o => (
               <div key={o.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: '1px solid #F1F5F9' }}>
-                <div style={{ width: 40, height: 40, borderRadius: 10, background: '#F4F6FB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#2E5AFF', fontSize: 16 }}>T{o.tableNum || '??'}</div>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: '#F4F6FB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#2E5AFF', fontSize: 16 }}>T{o.table?.number || '??'}</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 600, fontSize: 13 }}>{o.id}</div>
                   <div style={{ fontSize: 11, color: '#94A3B8' }}>{(o.items || []).length} items · {o.worker?.name || 'Staff'}</div>
@@ -78,7 +78,7 @@ function ManagerDash() {
                 <div>
                   <span style={{ fontSize: 11, fontWeight: 700, color: statusColor[o.status] || '#94A3B8', background: (statusColor[o.status] || '#94A3B8') + '18', padding: '3px 10px', borderRadius: 12 }}>{statusLabel[o.status] || o.status}</span>
                 </div>
-                <div style={{ fontWeight: 700, color: '#2E5AFF' }}>{formatCurrency(o.total || o.totalAmount || 0)}</div>
+                <div style={{ fontWeight: 700, color: '#2E5AFF' }}>{formatCurrency(Number(o.totalAmount || 0))}</div>
               </div>
             ))}
             {safeOrders.length === 0 && <div style={{ padding: 20, textAlign: 'center', color: '#94A3B8' }}>No live orders</div>}

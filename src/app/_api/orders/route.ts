@@ -3,7 +3,7 @@ import { ACTIVE_ORDERS, PENDING_KOTS } from '@/lib/mockData';
 import { ok, created, badRequest, unauthorized, notFound, serverError } from '@/lib/apiHelpers';
 
 // In-memory stores (replace with DB in production)
-let orders = [...ACTIVE_ORDERS];
+let orders = [...ACTIVE_ORDERS] as any[];
 let kots = [...PENDING_KOTS];
 let nextOrderNum = 200;
 
@@ -74,9 +74,10 @@ export async function POST(req: NextRequest) {
     kotStatus: 'none' as const,
     worker: auth.role,
     total,
+    time: new Date().toISOString()
   };
 
-  orders.push(newOrder as typeof orders[0]);
+  orders.push(newOrder as any);
 
   return created({ order: newOrder });
 }

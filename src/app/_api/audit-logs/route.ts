@@ -72,16 +72,17 @@ export async function POST(req: NextRequest) {
   if (!action || !resource) return badRequest('action and resource are required');
 
   const entry = {
-    id: auditStore.length + 1001,
+    id: String(auditStore.length + 1001),
     timestamp: new Date().toISOString(),
     user: 'API',
-    role: auth.role,
-    tenant: null,
+    role: String(auth.role),
+    tenant: '',
     action: String(action),
     resource: String(resource),
-    resourceId,
+    resourceId: String(resourceId || ''),
     severity: String(severity),
     ip: 'api',
+    hotel: ''
   };
 
   auditStore.unshift(entry);

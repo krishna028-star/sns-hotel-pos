@@ -19,7 +19,8 @@ function CashierDash() {
     tableId: o.tableId,
     tableNum: o.table?.number || '?',
     customerName: o.waiter?.name || 'Walk-in',
-    amount: o.totalAmount || 0,
+    // BUG-05 FIX: Prisma Decimal must be coerced to Number before arithmetic
+    amount: Number(o.totalAmount || 0),
     method: 'cash',
     time: new Date(o.createdAt).toLocaleTimeString()
   }));
@@ -41,7 +42,9 @@ function CashierDash() {
     }
   };
 
-  const change = cashModal ? Math.max(0, parseFloat(cashReceived || '0') - cashModal.amount) : 0;
+  // BUG-08 FIX: Use raw difference (can be negative = shortfall) for display
+  const rawChange = cashModal ? parseFloat(cashReceived || '0') - cashModal.amount : 0;
+  const change = rawChange;
 
   return (
     <DashboardLayout title="Cashier Dashboard">
@@ -131,9 +134,18 @@ function CashierDash() {
                 <input className="form-input" type="number" style={{ fontSize: 20, fontWeight: 700, textAlign: 'center' }} placeholder="0" value={cashReceived} onChange={e => setCashReceived(e.target.value)} />
               </div>
               {parseFloat(cashReceived) > 0 && (
-                <div style={{ marginTop: 16, padding: 16, background: change > 0 ? '#e8fdf7' : '#F4F6FB', borderRadius: 12, textAlign: 'center' }}>
-                  <div style={{ fontSize: 12, color: '#64748B' }}>Change to Return</div>
-                  <div style={{ fontSize: 32, fontWeight: 900, color: change > 0 ? '#00C48C' : '#94A3B8' }}>₹{change.toFixed(2)}</div>
+                <div style={{ marginTop: 16, padding: 16, background: change >= 0 ? '#e8fdf7' : '#fff0ef', borderRadius: 12, textAlign: 'center' }}>
+                  {change >= 0 ? (
+                    <>
+                      <div style={{ fontSize: 12, color: '#64748B' }}>Change to Return</div>
+                      <div style={{ fontSize: 32, fontWeight: 900, color: '#00C48C' }}>₹{change.toFixed(2)}</div>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ fontSize: 12, color: '#FF3B30', fontWeight: 700 }}>⚠️ Shortfall — Cash Insufficient</div>
+                      <div style={{ fontSize: 32, fontWeight: 900, color: '#FF3B30' }}>₹{Math.abs(change).toFixed(2)} short</div>
+                    </>
+                  )}
                 </div>
               )}
             </div>

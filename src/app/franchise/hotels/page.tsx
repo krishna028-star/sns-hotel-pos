@@ -26,17 +26,18 @@ function FranchiseHotels() {
     const resH = await fetchHotels(); 
     const resT = await fetchTenants();
 
-    if (resH.ok) setHotels(resH.hotels);
+    if (resH.ok) setHotels(resH.hotels || []);
     if (resT.ok) {
-        setTenants(resT.tenants);
-        if (resT.tenants.length > 0) setFormData(prev => ({ ...prev, tenantId: resT.tenants[0].id }));
+        const tnts = resT.tenants || [];
+        setTenants(tnts);
+        if (tnts.length > 0) setFormData(prev => ({ ...prev, tenantId: tnts[0].id }));
     }
     setLoading(false);
   };
 
   const handleCreate = async () => {
     if (!formData.name || !formData.tenantId) return alert('Name and Tenant are required');
-    const res = await createDbHotel({ 
+    const res = await createDbHotel(user!.id, { 
         name: formData.name, 
         tenantId: formData.tenantId,
         address: formData.address,

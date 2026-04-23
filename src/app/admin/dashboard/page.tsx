@@ -73,7 +73,7 @@ function AdminDash() {
               </defs>
               <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} allowDecimals={false} />
-              <Tooltip formatter={(v: unknown) => [v, 'Actions']} contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 12 }} />
+              <Tooltip formatter={(v: any) => [v, 'Actions']} contentStyle={{ borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 12 }} />
               <Area type="monotone" dataKey="actions" stroke="#2E5AFF" strokeWidth={2} fill="url(#rv)" />
             </AreaChart>
           </ResponsiveContainer>
