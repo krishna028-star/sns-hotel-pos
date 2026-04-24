@@ -18,9 +18,13 @@ function AdminTenants() {
     setTenants(dataTenants);
   }, [dataTenants]);
 
+  const generateTenantId = () => {
+    return 'TNT-' + Math.random().toString(36).substring(2, 6).toUpperCase() + Math.floor(1000 + Math.random() * 9000);
+  };
+
   const openCreate = () => {
     setEditId(null);
-    setForm({ name:'', customId:'', domain:'', email:'', plan:'enterprise', status:'active' });
+    setForm({ name:'', customId: generateTenantId(), domain:'', email:'', plan:'enterprise', status:'active' });
     setShowModal(true);
   };
 
