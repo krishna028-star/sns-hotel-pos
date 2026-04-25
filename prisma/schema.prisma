@@ -5,8 +5,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ── Role Hierarchy Enum ──────────────────────────────────────────────
@@ -40,6 +41,7 @@ model Tenant {
   franchises  Franchise[]
   hotels      Hotel[]
   policies    Policy[]
+  notifications Notification[]
 }
 
 // ── Franchise (Regional Groups) ───────────────────────────────────────
@@ -346,6 +348,17 @@ model AuditLog {
   entityId  String
   oldData   String? // JSON
   newData   String? // JSON
-  ipAddress String?
   createdAt DateTime @default(now())
 }
+
+// ── Notifications ───────────────────────────────────────────────────
+model Notification {
+  id        String   @id @default(cuid())
+  type      String   // 'order', 'payment', 'inventory', 'critical', 'info'
+  message   String
+  read      Boolean  @default(false)
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  createdAt DateTime @default(now())
+}
+

@@ -2,9 +2,18 @@
 import { prisma } from '@/lib/db';
 import { logAction } from '@/lib/audit';
 
-export async function fetchUsers() {
+export async function fetchUsers(adminId?: string) {
   try {
+    let whereClause = {};
+    if (adminId) {
+      const admin = await prisma.user.findUnique({ where: { id: adminId } });
+      if (admin && admin.role !== 'main_admin') {
+        whereClause = { tenantId: admin.tenantId };
+      }
+    }
+
     const users = await prisma.user.findMany({
+      where: whereClause,
       orderBy: { createdAt: 'asc' },
       include: { hotel: true, tenant: true }
     });
@@ -39,11 +48,20 @@ export async function fetchUsers() {
 
 export async function createDbUser(adminId: string, userData: any) {
   try {
+    const admin = await prisma.user.findUnique({ where: { id: adminId } });
+    if (!admin) return { ok: false, error: 'Unauthorized' };
+
     // FIX: Only call ensureDefaultTenant when no tenantId provided
     let tenantId = userData.tenantId;
     let hotelId = userData.hotelId;
 
-    if (!tenantId || !hotelId) {
+    if (admin.role !== 'main_admin') {
+      // Force strict tenant isolation
+      tenantId = admin.tenantId;
+      if (userData.role === 'main_client') {
+        return { ok: false, error: 'Permission denied: Cannot create main_client.' };
+      }
+    } else if (!tenantId || !hotelId) {
       const { tenant, hotel } = await ensureDefaultTenant();
       tenantId = tenantId || tenant.id;
       hotelId = hotelId || hotel.id;

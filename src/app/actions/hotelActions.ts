@@ -2,13 +2,23 @@
 import { prisma } from '@/lib/db';
 import { logAction } from '@/lib/audit';
 
-export async function fetchHotels(tenantId?: string, franchiseId?: string) {
+export async function fetchHotels(adminId?: string, tenantId?: string, franchiseId?: string) {
   try {
+    let whereClause: any = {};
+    if (adminId) {
+      const admin = await prisma.user.findUnique({ where: { id: adminId } });
+      if (admin && admin.role !== 'main_admin') {
+         whereClause.tenantId = admin.tenantId;
+      } else if (tenantId) {
+         whereClause.tenantId = tenantId;
+      }
+    } else if (tenantId) {
+       whereClause.tenantId = tenantId;
+    }
+    if (franchiseId) whereClause.franchiseId = franchiseId;
+
     const hotels = await prisma.hotel.findMany({
-      where: {
-        ...(tenantId ? { tenantId } : {}),
-        ...(franchiseId ? { franchiseId } : {})
-      },
+      where: whereClause,
       include: {
         _count: { select: { tables: true, staff: true, orders: true } },
         tenant: true,

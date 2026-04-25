@@ -2,9 +2,18 @@
 import { prisma } from '@/lib/db';
 import { logAction } from '@/lib/audit';
 
-export async function fetchTenants() {
+export async function fetchTenants(adminId?: string) {
   try {
+    let whereClause = {};
+    if (adminId) {
+      const admin = await prisma.user.findUnique({ where: { id: adminId } });
+      if (admin && admin.role !== 'main_admin') {
+        whereClause = { id: admin.tenantId };
+      }
+    }
+
     const tenants = await prisma.tenant.findMany({
+      where: whereClause,
       orderBy: { createdAt: 'desc' },
       include: {
         _count: { select: { hotels: true, users: true } }

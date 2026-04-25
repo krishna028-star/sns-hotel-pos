@@ -1,5 +1,7 @@
 'use client';
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { useAuth } from '@/lib/auth';
+import { fetchUserNotifications, markNotificationAsRead } from '@/lib/serverNotifications';
 
 export type NotificationType = 'order' | 'payment' | 'inventory' | 'critical' | 'info';
 
@@ -24,6 +26,8 @@ const NotificationContext = createContext<NotificationCtx | null>(null);
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  // AuthContext wrapper is above this provider in layout.tsx
+  const { user } = useAuth();
 
   // Sound Synth Helper
   const playAlarm = useCallback((type: NotificationType) => {
@@ -90,7 +94,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   const notify = useCallback((type: NotificationType, message: string) => {
     const newNotif: Notification = {
-      id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+      id: `local_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
       type,
       message,
       // BUG FIX: Store as ISO string — safe for serialization
@@ -101,11 +105,49 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     playAlarm(type);
   }, [playAlarm]);
 
-  const markAsRead = useCallback((id: string | 'all') => {
+  // DB SHORT POLLING FOR REAL-TIME SIMULATION
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    let isSubscribed = true;
+    const fetchNotifs = async () => {
+      const res = await fetchUserNotifications(user.id);
+      if (res.ok && isSubscribed && res.notifications) {
+        setNotifications((prev) => {
+           const dbNotifs = res.notifications || [];
+           
+           // Sound for genuinely new unread DB notifications
+           const newUnread = dbNotifs.filter((dn: any) => !dn.read && !prev.find(pn => pn.id === dn.id && !pn.read));
+           newUnread.forEach((n: any) => playAlarm(n.type));
+
+           // Retain local client-side-only notifications (e.g. welcome trigger)
+           const localNotifs = prev.filter(p => String(p.id).startsWith('local_') || String(p.id).startsWith('notif_'));
+           
+           return [...localNotifs, ...dbNotifs].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 50);
+        });
+      }
+    };
+
+    fetchNotifs();
+    const interval = setInterval(fetchNotifs, 10000); // Poll every 10 seconds
+    return () => {
+      isSubscribed = false;
+      clearInterval(interval);
+    };
+  }, [user?.id, playAlarm]);
+
+  const markAsRead = useCallback(async (id: string | 'all') => {
+    if (user?.id) {
+       // Fire-and-forget server sync unless it's a 'local_' notification
+       if (id === 'all' || !String(id).startsWith('local_')) {
+          markNotificationAsRead(user.id, id).catch(() => {});
+       }
+    }
+    // Optimistic UI update
     setNotifications(prev => prev.map(n =>
       id === 'all' || n.id === id ? { ...n, read: true } : n
     ));
-  }, []);
+  }, [user?.id]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 

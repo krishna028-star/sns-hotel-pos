@@ -49,10 +49,14 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
     remarks: ''
   });
 
-  const availableRoles = roleFilterOptions || [
+  let availableRoles = roleFilterOptions || [
     'main_client', 'franchise_head', 'hotel_manager',
     'inventory_manager', 'cashier', 'chef', 'worker', 'customer'
   ];
+  // BUG FIX: Main Client must NOT be able to create another Main Client.
+  if (currentUser?.role !== 'main_admin') {
+    availableRoles = availableRoles.filter(r => r !== 'main_client');
+  }
 
   // Only show users this admin can manage (hierarchy-aware)
   const manageableUsers = users.filter(u => canManage(u.role) || u.id === currentUser?.id);
@@ -348,15 +352,17 @@ export default function UserManagement({ title, subtitle, roleFilterOptions }: U
                 <label className="form-label">Remarks / Special Notes</label>
                 <textarea className="form-input" style={{ minHeight: 60 }} value={formData.remarks} onChange={e => setFormData({ ...formData, remarks: e.target.value })} />
               </div>
-              <div className="form-group">
-                <label className="form-label">Tenant (Main Client) *</label>
-                <select className="form-select" value={formData.tenantId} onChange={e => setFormData({ ...formData, tenantId: e.target.value, hotelId: '' })}>
-                   <option value="">Select Tenant...</option>
-                   {tenants.map(t => (
-                     <option key={t.id} value={t.id}>{t.name}</option>
-                   ))}
-                </select>
-              </div>
+              {currentUser?.role === 'main_admin' && (
+                <div className="form-group">
+                  <label className="form-label">Tenant (Main Client) *</label>
+                  <select className="form-select" value={formData.tenantId} onChange={e => setFormData({ ...formData, tenantId: e.target.value, hotelId: '' })}>
+                    <option value="">Select Tenant...</option>
+                    {tenants.map(t => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="form-group">
                 <label className="form-label">Hotel Assignment</label>
                 <select className="form-select" value={formData.hotelId} onChange={e => setFormData({ ...formData, hotelId: e.target.value })}>

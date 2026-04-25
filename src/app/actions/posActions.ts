@@ -613,10 +613,22 @@ export async function fetchGlobalMetrics() {
 }
 
 // ─── FRANCHISES ─────────────────────────────────────────────────────────────
-export async function fetchFranchises(tenantId?: string) {
+export async function fetchFranchises(adminId?: string, tenantId?: string) {
   try {
+    let whereClause: any = {};
+    if (adminId) {
+      const admin = await prisma.user.findUnique({ where: { id: adminId } });
+      if (admin && admin.role !== 'main_admin') {
+         whereClause.tenantId = admin.tenantId;
+      } else if (tenantId) {
+         whereClause.tenantId = tenantId;
+      }
+    } else if (tenantId) {
+       whereClause.tenantId = tenantId;
+    }
+
     const franchises = await prisma.franchise.findMany({
-      where: tenantId ? { tenantId } : {},
+      where: whereClause,
       include: {
         _count: { select: { hotels: true } },
         headUser: { select: { name: true, email: true } },

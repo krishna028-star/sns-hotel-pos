@@ -144,7 +144,15 @@ function ManagerTables() {
             <div className="modal-body">
               <div className="form-group"><label className="form-label">Table Number *</label><input className="form-input" placeholder="e.g. T1 or 12" value={addForm.number} onChange={e => setAddForm(f => ({ ...f, number: e.target.value }))} /></div>
               <div className="form-group"><label className="form-label">Capacity</label><input className="form-input" type="number" min={1} max={20} value={addForm.capacity} onChange={e => setAddForm(f => ({ ...f, capacity: parseInt(e.target.value) }))} /></div>
-              <div className="form-group"><label className="form-label">Floor</label><input className="form-input" placeholder="e.g. Ground Floor" value={addForm.floor} onChange={e => setAddForm(f => ({ ...f, floor: e.target.value }))} /></div>
+              <div className="form-group">
+                <label className="form-label">Floor</label>
+                <select className="form-select" value={addForm.floor} onChange={e => setAddForm(f => ({ ...f, floor: e.target.value }))}>
+                  <option value="Ground Floor">Ground Floor</option>
+                  <option value="First Floor">First Floor</option>
+                  <option value="Second Floor">Second Floor</option>
+                  <option value="Roof Top">Roof Top</option>
+                </select>
+              </div>
             </div>
             <div className="modal-footer">
               <button className="btn btn-outline" onClick={() => setShowAdd(false)}>Cancel</button>

@@ -123,13 +123,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     try {
       if (user.role === 'main_admin' || user.role === 'main_client') {
         const [tenantsRes, hotelsRes, usersRes, logsRes, metricsRes, suppliersRes, franchisesRes] = await Promise.all([
-          tenantActions.fetchTenants(),
-          hotelActions.fetchHotels(),
-          authActions.fetchUsers(),
+          tenantActions.fetchTenants(user.id),
+          hotelActions.fetchHotels(user.id),
+          authActions.fetchUsers(user.id),
           actions.fetchAuditLogs(50),
           actions.fetchGlobalMetrics(),
           actions.fetchSuppliers(),
-          actions.fetchFranchises()
+          actions.fetchFranchises(user.id)
         ]);
 
         if (tenantsRes.ok) data.tenants = tenantsRes.tenants;
