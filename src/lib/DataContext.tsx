@@ -213,6 +213,26 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     refreshData();
+
+    // BUG-05 FIX: Automatic polling every 5 seconds to sync data across all roles (Manager, Worker, Chef, etc.)
+    // OPTIMIZATION: Only poll if the tab is active to save resources and improve performance.
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        refreshData();
+      }
+    }, 5000);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refreshData();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [refreshData]);
 
   // ── Wrapper helpers (all wrapped in useCallback for stable references) ─────
@@ -224,8 +244,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   }, [user, refreshData]);
 
   const updateTable = useCallback(async (id: string, data: any) => {
+    // Optimistic Update
+    setState(prev => ({
+      ...prev,
+      tables: prev.tables.map(t => t.id === id ? { ...t, ...data } : t)
+    }));
+
     const res = await actions.updateTable(user!.id, id, data);
-    if (res.ok) await refreshData();
+    if (!res.ok) await refreshData(); // Rollback
     return res;
   }, [user, refreshData]);
 
@@ -242,8 +268,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   }, [user, refreshData]);
 
   const updateMenuItem = useCallback(async (id: string, data: any) => {
+    // Optimistic Update
+    setState(prev => ({
+      ...prev,
+      menuItems: prev.menuItems.map(m => m.id === id ? { ...m, ...data } : m)
+    }));
+
     const res = await actions.updateMenuItem(user!.id, id, data);
-    if (res.ok) await refreshData();
+    if (!res.ok) await refreshData(); // Rollback
     return res;
   }, [user, refreshData]);
 
@@ -260,8 +292,18 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   }, [user, refreshData]);
 
   const updateOrderStatus = useCallback(async (id: string, status: string, version: number) => {
+    // Optimistic Update
+    setState(prev => {
+      const updatedOrders = prev.orders.map(o => o.id === id ? { ...o, status, version: version + 1 } : o);
+      return {
+        ...prev,
+        orders: updatedOrders,
+        activeOrders: updatedOrders.filter((o: any) => o.status !== 'paid' && o.status !== 'cancelled')
+      };
+    });
+
     const res = await actions.updateOrderStatus(user!.id, id, status, version);
-    if (res.ok) await refreshData();
+    if (!res.ok) await refreshData(); // Rollback
     return res;
   }, [user, refreshData]);
 
@@ -272,8 +314,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   }, [user, refreshData]);
 
   const adjustStock = useCallback(async (itemId: string, change: number, reason: string, version: number) => {
+    // Optimistic Update
+    setState(prev => ({
+      ...prev,
+      ingredients: prev.ingredients.map(i => i.id === itemId ? { ...i, stockQuantity: Number(i.stockQuantity) + change, version: version + 1 } : i)
+    }));
+
     const res = await actions.adjustStock(user!.id, itemId, change, reason, version);
-    if (res.ok) await refreshData();
+    if (!res.ok) await refreshData(); // Rollback
     return res;
   }, [user, refreshData]);
 
